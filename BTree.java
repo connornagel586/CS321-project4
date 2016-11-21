@@ -13,76 +13,84 @@ public class BTree<T> {
 		this.file = file;
 	}
 
-private void InsertNode(){
-/*		BTree<T>.BTreeNode<T> r = root;
-			if n[r] = 2t - 1 then
-				// uh-oh, the root is full, we have to split it
-				s = allocate-node ()
-				root[T] = s 	// new root node
-				leaf[s] = False // will have some children
-				n[s] = 0	// for now
-				c1[s] = r // child is the old root node
-				B-Tree-Split-Child (s, 1, r) // r is split
-				B-Tree-Insert-Nonfull (s, k) // s is clearly not full
-			else
-				B-Tree-Insert-Nonfull (r, k)*/
-}
+	private void InsertNode(){
 
-	private void InsertNodeNonFull() {
+		BTreeNode<T> r = root;
+		if (r.numKeys() == 2t - 1){
+			// uh-oh, the root is full, we have to split it
+			s = allocate-node ();
+			root = s; 	// new root node
+			s.isLeaf() = False; // will have some children
+			s.numKeys() = 0;	// for now
+			s.childPointer[1] = r; // child is the old root node
+			SplitNode(s, 1, r); // r is split
+			InsertNodeNonFull(s, k); // s is clearly not full
+		}
+		else
+			InsertNodeNonFull(r, k);
+	}
 
-	/*		B-Tree-Insert-Nonfull (x, k)
-		i = n[x]
+	private void InsertNodeNonFull(BTreeNode<T> x , long k) {
 
-		if leaf[x] then
+
+
+		int i = x.numKeys();
+
+		if (x.isLeaf()){
 
 			// shift everything over to the "right" up to the
 			// point where the new key k should go
 
-			while i >= 1 and k < keyi[x] do
-				keyi+1[x] = keyi[x]
-				i--
-			end while
+			while (i >= 1 && k < x.keys[i]){
 
-			// stick k in its right place and bump up n[x]
+				x.keys[i+1] = x.keys[i];
+				i--;
+			}
 
-			keyi+1[x] = k
-			n[x]++
-		else
+			// stick k in its right place and increase numKeys
+
+			x.keys[i+1] = k;
+			x.numKeys++;
+			Disk-Write(x);
+		}
+		else{
 
 			// find child where new key belongs:
 
-			while i >= 1 and k < keyi[x] do
-				i--
-			end while
+			while (i >= 1 and k < x.keys[i]){
+				i--;
+			}
 
 			// if k is in ci[x], then k <= keyi[x] (from the definition)
 			// we'll go back to the last key (least i) where we found this
 			// to be true, then read in that child node
 
-			i++
-			Disk-Read (ci[x])
-			if n[ci[x]] = 2t - 1 then
+			i++;
+			Disk-Read (x.childPointer[i]);
+		}
+		if (x.childPointer[i].numKeys() = 2(degree) - 1){
 
-				// uh-oh, this child node is full, we'll have to split it
+			// this child node is full, split the node
 
-				B-Tree-Split-Child (x, i, ci[x])
+			SplitNode(x, i, x.childPointer[i]);
 
-				// now ci[x] and ci+1[x] are the new children, 
-				// and keyi[x] may have been changed. 
-				// we'll see if k belongs in the first or the second
+			// now ci[x] and ci+1[x] are the new children, 
+			// and keyi[x] may have been changed. 
+			// we'll see if k belongs in the first or the second
+		}
+		if (k > x.keys[i]){
+			i++;
+		}
 
-				if k > keyi[x] then i++
-			end if
+		// call method recursively to do the insertion
 
-			// call ourself recursively to do the insertion
-
-			B-Tree-Insert-Nonfull (ci[x], k)*/
+		InsertNodeNonFull(x.childPointer[i], k);
 
 	}
 
 	private void SplitNode() {
-/*		B-Tree-Split-Child (x, i, y)
-		z = allocate-node ()
+		/*		B-Tree-Split-Child (x, i, y)
+				z = allocate-node ()
 
 		// new node is a leaf if old node was 
 
@@ -95,15 +103,15 @@ private void InsertNode(){
 		// copy over the "right half" of y into z
 
 		for j in 1..t-1 do
-			keyj[z] = keyj+t[y]
+		keyj[z] = keyj+t[y]
 		end for
 
 		// copy over the child pointers if y isn't a leaf
 
 		if not leaf[y] then
-			for j in 1..t do
-				cj[z] = cj+t[y]
-			end for
+		for j in 1..t do
+		cj[z] = cj+t[y]
+		end for
 		end if
 
 		// having "chopped off" the right half of y, it now has t-1 keys
@@ -115,20 +123,20 @@ private void InsertNode(){
 		// be the other half as ci+1[x]
 
 		for j in n[x]+1 downto i+1 do
-			cj+1[x] = cj[x]
+		cj+1[x] = cj[x]
 		end for
 		ci+1 = z
 
 		// the keys have to be shifted over as well...
 
 		for j in n[x] downto i do
-			keyj+1[x] = keyj[x]
+		keyj+1[x] = keyj[x]
 		end for
 
 		// ...to accomodate the new key we're bringing in from the middle 
 		// of y (if you're wondering, since (t-1) + (t-1) = 2t-2, where 
 		// the other key went, its coming into x)
-		
+
 		keyi[x] = keyt[y]
 		n[x]++
 
@@ -146,7 +154,7 @@ private void InsertNode(){
 		int[] childPointers; // This will be useful for a couple of things including know if we are in a leaf. 
 		int numKeys; // So we know when we are full.
 		boolean isLeaf; // We will have to set this when we reach a leaf. 
-		
+
 		//Not sure if we need both constructors lol just shotgunning this one.
 		BTreeNode() {
 			keys = new TreeObject[2 * degree - 1];
@@ -159,6 +167,6 @@ private void InsertNode(){
 			childPointers = new int[2 * i];
 			numKeys = 0;
 
-	}
+		}
 	}
 }
