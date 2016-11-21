@@ -111,7 +111,7 @@ private void InsertNode(){
 		n[y] = t - 1
 
 		// shift everything in x over from i+1, then stick the new child in x;
-		// y will half its former self as ci[x] and z will 
+		// y will half its former self as ci[x] and z will 	
 		// be the other half as ci+1[x]
 
 		for j in n[x]+1 downto i+1 do
@@ -140,10 +140,23 @@ private void InsertNode(){
 	}
 
 	private class BTreeNode<T> {
-		// TODO: Need an array of TreeObjects and child pointers after this I
-		// will create the rest of this class.
-		int keyCount;
+
+		TreeObject[] keys;
+		public int address;
+		int[] childPointers; 
+		int numKeys;
 		boolean isLeaf;
+
+		BTreeNode() {
+			keys = new TreeObject[2 * degree - 1];
+			childPointers = new int[2 * degree];
+			numKeys = 0;
+		}
+
+		BTreeNode(int i) {
+		keys = new TreeObject[2 * i - 1];
+		childPointers = new int[2 * i];
+		numKeys = 0;
 
 	}
 
