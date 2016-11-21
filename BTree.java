@@ -141,12 +141,13 @@ private void InsertNode(){
 
 	private class BTreeNode<T> {
 
-		TreeObject[] keys;
-		public int address;
-		int[] childPointers; 
-		int numKeys;
-		boolean isLeaf;
-
+		TreeObject[] keys; 
+		public int current; // Keeps track of were we are at.
+		int[] childPointers; // This will be useful for a couple of things including know if we are in a leaf. 
+		int numKeys; // So we know when we are full.
+		boolean isLeaf; // We will have to set this when we reach a leaf. 
+		
+		//Not sure if we need both constructors lol just shotgunning this one.
 		BTreeNode() {
 			keys = new TreeObject[2 * degree - 1];
 			childPointers = new int[2 * degree];
@@ -154,9 +155,9 @@ private void InsertNode(){
 		}
 
 		BTreeNode(int i) {
-		keys = new TreeObject[2 * i - 1];
-		childPointers = new int[2 * i];
-		numKeys = 0;
+			keys = new TreeObject[2 * i - 1];
+			childPointers = new int[2 * i];
+			numKeys = 0;
 
 	}
 
