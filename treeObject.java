@@ -1,43 +1,34 @@
-public class TreeObject implements comparable{
+public class TreeObject implements Comparable<TreeObject>{
 
-	private long key = 0;
-	private int freq = 0;
-
-	public TreeObject(long key){
-		this.key = key;
-	}
-
-	@Override
-	public int compareTo(long key){
-		if(this.key == key){
-			return 0;
-		}
-		if(this.key < key){
-			return -1;
-		}
-		if(this.key > key){
-			return 1;
-		}
-	}
-	public boolean equals(long key){
-		if(this.key == key){
-			return true;
-		}
-
-		return false;
-	}
-
-	public int getFreq(){
-		return this.freq;
-	}
-
-	public int increaseFreq(){
-	return freq++;
+	private Long key;
+	private int freq = 1;
+	
+	TreeObject(Long o){
+		key = o;
 	}
 	
-	@Override
-	public String toString(){
+	public void increaseFrequency(){
+		freq++;
+	}
+	
+	public String toString(){ 
 		return key.toString();
+	}
+	
+	public int getFreq(){
+		return freq;
+	}
+	
+	public Long getKey(int m){
+		return (Long) key;
+	}
+	
+	public boolean equals(TreeObject o){
+		return o.key.equals(key);
+	}
+
+	public int compareTo(TreeObject o) {
+		return key.compareTo(o.key);
 	}
 
 }
