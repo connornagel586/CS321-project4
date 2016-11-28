@@ -43,8 +43,7 @@ public class BTree<T> {
 			// shift everything over to the "right" up to the
 			// point where the new key k should go
 
-			while (i >= 1 && k < x.keys[i]){ //use compare to.
-
+			while (i >= 1 && k.compareTo(x.keys[i]) < 0){ //use compare to.
 				x.keys[i+1] = x.keys[i];
 				i--;
 			}
@@ -59,7 +58,7 @@ public class BTree<T> {
 
 			// find child where new key belongs:
 
-			while (i >= 1 && k < x.keys[i]){//use compare to.
+			while (i >= 1 && k.compareTo(x.keys[i]) < 0){//use compare to.
 				i--;
 			}
 
@@ -74,19 +73,19 @@ public class BTree<T> {
 
 			// this child node is full, split the node
 
-			SplitNode(x, i, x.childPointers[i]);
+			SplitNode(x, i, y);
 
 			// now ci[x] and ci+1[x] are the new children, 
 			// and keyi[x] may have been changed. 
 			// we'll see if k belongs in the first or the second
 		}
-		if (k > x.keys[i]){
+		if (k.compareTo(x.keys[i]) > 0){
 			i++;
 		}
 
 		// call method recursively to do the insertion
 
-		InsertNodeNonFull(x.childPointers[i], k);
+		InsertNodeNonFull(x, k);
 
 	}
 
