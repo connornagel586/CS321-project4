@@ -6,8 +6,12 @@ public class BTree<T> {
 	int keyLength, nodeCount, maxKeys;
 	File file;
 
-	public BTree(int keyLength, int maxKeys, int degree, File file) {
-
+	public BTree(int keyLength, int degree, File file) {
+		root = new BTreeNode<T>();
+		root.isLeaf = true;
+		root.numKeys = 0;
+		root.current = 1;
+		root.nodeCount = 1;
 		this.keyLength = keyLength;
 		maxKeys = 2 * degree - 1;
 		this.file = file;
@@ -15,26 +19,26 @@ public class BTree<T> {
 
 	private void InsertNode() {
 
-		BTreeNode<T> r = root;
-		if (r.numKeys == 2 * degree - 1) {
+		r = root;
+		if (r.isFull()) {
 			// uh-oh, the root is full, we have to split it
-			s = allocate - node();
+			s = new BtreeNode<T>();
+			nodeCount++;
+			s.current = nodeCount;
 			root = s; // new root node
 			s.isLeaf = false; // will have some children
 			s.numKeys = 0; // for now
-			s.childPointer[1] = r; // child is the old root node
+			s.childPointers[1] = r; // child is the old root node
 			SplitNode(s, 1, r); // r is split
 			InsertNodeNonFull(s, k); // s is clearly not full
 		} else
 			InsertNodeNonFull(r, k);
 	}
 
-	private void InsertNodeNonFull(BTreeNode<T> x , long k) {
-
-
-
+	private void InsertNodeNonFull(BTreeNode<T> x , TreeObject k) {
+		
 		int i = x.numKeys;
-
+		
 		if (x.isLeaf){
 
 			// shift everything over to the "right" up to the
@@ -65,13 +69,13 @@ public class BTree<T> {
 			// to be true, then read in that child node
 
 			i++;
-			Disk-Read(x.childPointer[i]);
+			Disk-Read(x.childPointers[i]);
 		}
-		if (x.childPointer[i].numKeys = 2 * degree - 1){
+		if (x.childPointers[i].numKeys = 2 * degree - 1){
 
 			// this child node is full, split the node
 
-			SplitNode(x, i, x.childPointer[i]);
+			SplitNode(x, i, x.childPointers[i]);
 
 			// now ci[x] and ci+1[x] are the new children, 
 			// and keyi[x] may have been changed. 
@@ -83,7 +87,7 @@ public class BTree<T> {
 
 		// call method recursively to do the insertion
 
-		InsertNodeNonFull(x.childPointer[i], k);
+		InsertNodeNonFull(x.childPointers[i], k);
 
 	}
 
