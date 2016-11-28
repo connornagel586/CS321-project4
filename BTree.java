@@ -27,7 +27,7 @@ public class BTree<T> {
 			s.isLeaf = false; // will have some children
 			s.numKeys = 0; // for now
 			r.parent = s.current;
-			s.childPointers[1] = r; // child is the old root node
+			s.childPointers[1] = r.current; // child is the old root node
 			SplitNode(s, 1, r); // r is split
 			InsertNodeNonFull(s, o); // s is clearly not full
 		} else
@@ -105,17 +105,17 @@ public class BTree<T> {
 		splitNode = new BTreeNode<T>();
 		nodeCount++; // We need to keep track of the amount of nodes.
 		splitNode.current = nodeCount;
-		splitNode.isLeaf = childPointers[i].isLeaf; //Set our isLeaf flag.
+		splitNode.isLeaf = y.isLeaf; //Set our isLeaf flag.
 		splitNode.numKeys = degree - 1;
 		for (int j = 0; j < degree - 1; j++) {
-			splitNode.keys[j] = childPointers[i].keys[degree + j];
+			splitNode.keys[j] = y.keys[degree + j];
 		}
-		if (!childPointers[i].isLeaf) { //If not in a leaf go through the tree.
+		if (!y.isLeaf) { //If not in a leaf go through the tree.
 			for (int j = 0; j < degree; j++) {
-				splitNode.childPointers[j] = childPointers[i].childPointers[degree + j];
+				splitNode.childPointers[j] = y.childPointers[degree + j];
 			}
 		}
-		childPointers[i].numKeys = degree - 1;
+		y.numKeys = degree - 1;
 		for (int j = x.numKeys; j > i; j--) { 
 												
 			x.childPointers[j + 1] = x.childPointers[j];
@@ -125,10 +125,10 @@ public class BTree<T> {
 		for (int j = x.numKeys - 1; j >= i; j--) {
 			x.keys[j + 1] = x.keys[j];
 		}
-		x.keys[i] = childPointers[i].keys[degree - 1];
+		x.keys[i] = y.keys[degree - 1];
 		x.numKeys++;
 		diskWrite(x);
-		diskWrite(childPointers[i]);
+		diskWrite(y);
 		diskWrite(splitNode);
 
 	}
