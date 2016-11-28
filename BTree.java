@@ -13,20 +13,19 @@ public class BTree<T> {
 		this.file = file;
 	}
 
-	private void InsertNode(){
+	private void InsertNode() {
 
 		BTreeNode<T> r = root;
-		if (r.numKeys == 2 * degree - 1){
+		if (r.numKeys == 2 * degree - 1) {
 			// uh-oh, the root is full, we have to split it
-			s = allocate-node ();
-			root = s; 	// new root node
+			s = allocate - node();
+			root = s; // new root node
 			s.isLeaf = false; // will have some children
-			s.numKeys = 0;	// for now
+			s.numKeys = 0; // for now
 			s.childPointer[1] = r; // child is the old root node
 			SplitNode(s, 1, r); // r is split
 			InsertNodeNonFull(s, k); // s is clearly not full
-		}
-		else
+		} else
 			InsertNodeNonFull(r, k);
 	}
 
@@ -88,56 +87,54 @@ public class BTree<T> {
 
 	}
 
-	private void SplitNode() {
-		/*		B-Tree-Split-Child (x, i, y)
-				z = allocate-node ()
-		// new node is a leaf if old node was 
-		leaf[z] = leaf[y]
-		// we since y is full, the new node must have t-1 keys
-		n[z] = t - 1
-		// copy over the "right half" of y into z
-		for j in 1..t-1 do
-		keyj[z] = keyj+t[y]
-		end for
-		// copy over the child pointers if y isn't a leaf
-		if not leaf[y] then
-		for j in 1..t do
-		cj[z] = cj+t[y]
-		end for
-		end if
-		// having "chopped off" the right half of y, it now has t-1 keys
-		n[y] = t - 1
-		// shift everything in x over from i+1, then stick the new child in x;
-		// y will half its former self as ci[x] and z will 	
-		// be the other half as ci+1[x]
-		for j in n[x]+1 downto i+1 do
-		cj+1[x] = cj[x]
-		end for
-		ci+1 = z
-		// the keys have to be shifted over as well...
-		for j in n[x] downto i do
-		keyj+1[x] = keyj[x]
-		end for
-		// ...to accomodate the new key we're bringing in from the middle 
-		// of y (if you're wondering, since (t-1) + (t-1) = 2t-2, where 
-		// the other key went, its coming into x)
-		keyi[x] = keyt[y]
-		n[x]++
-		// write everything out to disk
-		Disk-Write (y)
-		Disk-Write (z)
-		Disk-Write (x)*/
+	private void SplitNode(BTreeNode<T> x, int i, BTreeNode<T> y) {
+
+		splitChild = new BTreeNode<T>();
+		nodeCount++;
+		splitChild.current = nodeCount;
+		splitChild.isLeaf = y.isLeaf;
+		splitChild.numKeys = degree - 1;
+		for (int j = 0; j < degree - 1; j++) {
+			splitChild.keys[j] = y.keys[degree + j];
+		}
+		if (!y.isLeaf) {
+			for (int j = 0; j < degree; j++) {
+				splitChild.childPointers[j] = y.childPointers[degree + j];
+			}
+		}
+		y.numKeys = degree - 1;
+		for (int j = x.numKeys; j > i; j--) { // TODO double check pseudocode
+												// line 10
+			x.childPointers[j + 1] = x.childPointers[j];
+		}
+		x.childPointers[i + 1] = splitChild.current; // splitChild.address
+		splitChild.parent = x.current;
+		for (int j = x.numKeys - 1; j >= i; j--) {
+			x.keys[j + 1] = x.keys[j];
+		}
+		x.keys[i] = y.keys[degree - 1];
+		x.numKeys++;
+		diskWrite(x);
+		diskWrite(y);
+		diskWrite(splitChild);
+
 	}
 
-	private class BTreeNode<T> {
+	private void diskWrite(BTreeNode<T> x) {
+		// TODO Auto-generated method stub
+		
+	}
 
-		TreeObject[] keys; 
+	class BTreeNode<T> {
+
+		TreeObject[] keys;
 		public int current; // Keeps track of were we are at.
-		int[] childPointers; // This will be useful for a couple of things including know if we are in a leaf. 
-		int numKeys; // So we know when we are full.
-		boolean isLeaf; // We will have to set this when we reach a leaf. 
+		int[] childPointers; // This will be useful for a couple of things
+		int numKeys, parent; // So we know when we are full.
+		
+		boolean isLeaf; // We will have to set this when we reach a leaf.
 
-		//Not sure if we need both constructors lol just shotgunning this one.
+		// Not sure if we need both constructors lol just shotgunning this one.
 		BTreeNode() {
 			keys = new TreeObject[2 * degree - 1];
 			childPointers = new int[2 * degree];
@@ -148,7 +145,23 @@ public class BTree<T> {
 			keys = new TreeObject[2 * i - 1];
 			childPointers = new int[2 * i];
 			numKeys = 0;
+		}
 
+		TreeObject getKey(int i) {
+			return keys[i];
+
+		}
+
+		void setKey(TreeObject k, int i) {
+			keys[i] = k;
+		}
+
+		boolean isFull() {
+			if (numKeys == keys.length) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 }
