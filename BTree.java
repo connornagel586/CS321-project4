@@ -28,6 +28,7 @@ public class BTree<T> {
 			root = s; // new root node
 			s.isLeaf = false; // will have some children
 			s.numKeys = 0; // for now
+			r.parent = s.current;
 			s.childPointers[1] = r; // child is the old root node
 			SplitNode(s, 1, r); // r is split
 			InsertNodeNonFull(s, k); // s is clearly not full
