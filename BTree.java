@@ -90,24 +90,24 @@ public class BTree<T> {
 	private void SplitNode(BTreeNode<T> x, int i, BTreeNode<T> y) {
 
 		splitChild = new BTreeNode<T>();
-		nodeCount++;
+		nodeCount++; // We need to keep track of the amount of nodes.
 		splitChild.current = nodeCount;
-		splitChild.isLeaf = y.isLeaf;
+		splitChild.isLeaf = y.isLeaf; //Set our isLeaf flag.
 		splitChild.numKeys = degree - 1;
 		for (int j = 0; j < degree - 1; j++) {
 			splitChild.keys[j] = y.keys[degree + j];
 		}
-		if (!y.isLeaf) {
+		if (!y.isLeaf) { //If not in a leaf go through the tree.
 			for (int j = 0; j < degree; j++) {
 				splitChild.childPointers[j] = y.childPointers[degree + j];
 			}
 		}
 		y.numKeys = degree - 1;
-		for (int j = x.numKeys; j > i; j--) { // TODO double check pseudocode
-												// line 10
+		for (int j = x.numKeys; j > i; j--) { 
+												
 			x.childPointers[j + 1] = x.childPointers[j];
 		}
-		x.childPointers[i + 1] = splitChild.current; // splitChild.address
+		x.childPointers[i + 1] = splitChild.current; 
 		splitChild.parent = x.current;
 		for (int j = x.numKeys - 1; j >= i; j--) {
 			x.keys[j + 1] = x.keys[j];
