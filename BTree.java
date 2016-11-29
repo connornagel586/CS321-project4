@@ -132,10 +132,6 @@ public class BTree<T> {
 
 	}
 
-	private void diskWrite(BTreeNode<T> x) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	private class BTreeNode<T> {
 
