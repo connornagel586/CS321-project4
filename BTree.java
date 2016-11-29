@@ -2,47 +2,48 @@ import java.io.File;
 
 public class BTree<T> {
 	private static int degree;
-	BTreeNode<T> root, current, splitNode, splitChild, child;
+	BTreeNode<T> root, r , s, splitNode, child;
 	int keyLength, nodeCount, maxKeys;
 	File file;
 
-	public BTree(int keyLength, int maxKeys, int degree, File file) {
-
+	public BTree(int keyLength, int degree, File file) {
+		root = new BTreeNode<T>();
+		root.isLeaf = true;
+		root.numKeys = 0;
+		root.current = 1;
 		this.keyLength = keyLength;
 		maxKeys = 2 * degree - 1;
 		this.file = file;
 	}
 
-	private void InsertNode(){
-
-		BTreeNode<T> r = root;
-		if (r.numKeys == 2 * degree - 1){
+	private void InsertNode(TreeObject o) {
+		r = root;
+		if (r.isFull()) {
 			// uh-oh, the root is full, we have to split it
-			s = allocate-node ();
-			root = s; 	// new root node
+			s = new BTreeNode<T>();
+			nodeCount++;
+			s.current = nodeCount;
+			root = s; // new root node
 			s.isLeaf = false; // will have some children
-			s.numKeys = 0;	// for now
-			s.childPointer[1] = r; // child is the old root node
+			s.numKeys = 0; // for now
+			r.parent = s.current;
+			s.childPointers[1] = r.current; // child is the old root node
 			SplitNode(s, 1, r); // r is split
-			InsertNodeNonFull(s, k); // s is clearly not full
-		}
-		else
-			InsertNodeNonFull(r, k);
+			InsertNodeNonFull(s, o); // s is clearly not full
+		} else
+			InsertNodeNonFull(r, o);
 	}
 
-	private void InsertNodeNonFull(BTreeNode<T> x , long k) {
-
-
-
+	private void InsertNodeNonFull(BTreeNode<T> x , TreeObject k) {
+		
 		int i = x.numKeys;
-
+		
 		if (x.isLeaf){
 
 			// shift everything over to the "right" up to the
 			// point where the new key k should go
 
-			while (i >= 1 && k < x.keys[i]){
-
+			while (i >= 1 && k.compareTo(x.keys[i]) < 0){ //use compare to.
 				x.keys[i+1] = x.keys[i];
 				i--;
 			}
@@ -51,13 +52,13 @@ public class BTree<T> {
 
 			x.keys[i+1] = k;
 			x.numKeys++;
-			Disk-Write(x);
+			DiskWrite(x);
 		}
 		else{
 
 			// find child where new key belongs:
 
-			while (i >= 1 and k < x.keys[i]){
+			while (i >= 1 && k.compareTo(x.keys[i]) < 0){//use compare to.
 				i--;
 			}
 
@@ -66,84 +67,84 @@ public class BTree<T> {
 			// to be true, then read in that child node
 
 			i++;
-			Disk-Read(x.childPointer[i]);
+			DiskRead(x.childPointers[i]);
 		}
-		if (x.childPointer[i].numKeys = 2 * degree - 1){
+		if (x.childPointers[i].numKeys = 2 * degree - 1){
 
 			// this child node is full, split the node
 
-			SplitNode(x, i, x.childPointer[i]);
+			SplitNode(x, i, y);
 
 			// now ci[x] and ci+1[x] are the new children, 
 			// and keyi[x] may have been changed. 
 			// we'll see if k belongs in the first or the second
 		}
-		if (k > x.keys[i]){
+		if (k.compareTo(x.keys[i]) > 0){
 			i++;
 		}
 
 		// call method recursively to do the insertion
 
-		InsertNodeNonFull(x.childPointer[i], k);
+		InsertNodeNonFull(x, k);
 
 	}
 
-	private void SplitNode() {
-		/*		B-Tree-Split-Child (x, i, y)
-				z = allocate-node ()
-		// new node is a leaf if old node was 
-		leaf[z] = leaf[y]
-		// we since y is full, the new node must have t-1 keys
-		n[z] = t - 1
-		// copy over the "right half" of y into z
-		for j in 1..t-1 do
-		keyj[z] = keyj+t[y]
-		end for
-		// copy over the child pointers if y isn't a leaf
-		if not leaf[y] then
-		for j in 1..t do
-		cj[z] = cj+t[y]
-		end for
-		end if
-		// having "chopped off" the right half of y, it now has t-1 keys
-		n[y] = t - 1
-		// shift everything in x over from i+1, then stick the new child in x;
-		// y will half its former self as ci[x] and z will 	
-		// be the other half as ci+1[x]
-		for j in n[x]+1 downto i+1 do
-		cj+1[x] = cj[x]
-		end for
-		ci+1 = z
-		// the keys have to be shifted over as well...
-		for j in n[x] downto i do
-		keyj+1[x] = keyj[x]
-		end for
-		// ...to accomodate the new key we're bringing in from the middle 
-		// of y (if you're wondering, since (t-1) + (t-1) = 2t-2, where 
-		// the other key went, its coming into x)
-		keyi[x] = keyt[y]
-		n[x]++
-		// write everything out to disk
-		Disk-Write (y)
-		Disk-Write (z)
-		Disk-Write (x)*/
+	private void DiskRead(int i) {
+		// TODO Auto-generated method stub
+		
 	}
 
-	public void Disk-Read(BTreeNode<T> nodeToRead){
-	
+	private void DiskWrite(BTree<T>.BTreeNode<T> x) {
+		// TODO Auto-generated method stub
+		
 	}
 
-	public void Disk-Write(BTreeNode<T> nodeToWrite){}
+
+	private void SplitNode(BTreeNode<T> x, int i,  BTreeNode<T> y) {
+
+		splitNode = new BTreeNode<T>();
+		nodeCount++; // We need to keep track of the amount of nodes.
+		splitNode.current = nodeCount;
+		splitNode.isLeaf = y.isLeaf; //Set our isLeaf flag.
+		splitNode.numKeys = degree - 1;
+		for (int j = 0; j < degree - 1; j++) {
+			splitNode.keys[j] = y.keys[degree + j];
+		}
+		if (!y.isLeaf) { //If not in a leaf go through the tree.
+			for (int j = 0; j < degree; j++) {
+				splitNode.childPointers[j] = y.childPointers[degree + j];
+			}
+		}
+		y.numKeys = degree - 1;
+		for (int j = x.numKeys; j > i; j--) { 
+												
+			x.childPointers[j + 1] = x.childPointers[j];
+		}
+		x.childPointers[i + 1] = splitNode.current; 
+		splitNode.parent = x.current;
+		for (int j = x.numKeys - 1; j >= i; j--) {
+			x.keys[j + 1] = x.keys[j];
+		}
+		x.keys[i] = y.keys[degree - 1];
+		x.numKeys++;
+		diskWrite(x);
+		diskWrite(y);
+		diskWrite(splitNode);
+
+	}
+
+
 
 	private class BTreeNode<T> {
 
-		TreeObject[] keys; 
+		TreeObject[] keys;
 		public int current; // Keeps track of were we are at.
-		int[] childPointers; // This will be useful for a couple of things including know if we are in a leaf. 
-		int numKeys; // So we know when we are full.
-		boolean isLeaf; // We will have to set this when we reach a leaf. 
+		int[] childPointers; // This will be useful for a couple of things
+		int numKeys, parent; // So we know when we are full.
+		
+		boolean isLeaf; // We will have to set this when we reach a leaf.
 
-		//Not sure if we need both constructors lol just shotgunning this one.
+		// Not sure if we need both constructors lol just shotgunning this one.
 		BTreeNode() {
 			keys = new TreeObject[2 * degree - 1];
 			childPointers = new int[2 * degree];
@@ -154,7 +155,23 @@ public class BTree<T> {
 			keys = new TreeObject[2 * i - 1];
 			childPointers = new int[2 * i];
 			numKeys = 0;
+		}
 
+		TreeObject getKey(int i) {
+			return keys[i];
+
+		}
+
+		void setKey(TreeObject k, int i) {
+			keys[i] = k;
+		}
+
+		boolean isFull() {
+			if (numKeys == keys.length) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 }
