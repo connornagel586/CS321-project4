@@ -129,6 +129,12 @@ public class BTree<T> {
 		Disk-Write (x)*/
 	}
 
+	public void Disk-Read(BTreeNode<T> nodeToRead){
+	
+	}
+
+	public void Disk-Write(BTreeNode<T> nodeToWrite){}
+
 	private class BTreeNode<T> {
 
 		TreeObject[] keys; 
