@@ -34,69 +34,71 @@ public class BTree<T> {
 			InsertNodeNonFull(r, o);
 	}
 
-	private void InsertNodeNonFull(BTreeNode<T> x , TreeObject k) {
-		
-		int i = x.numKeys;
-		
-		if (x.isLeaf){
+	private void InsertNodeNonFull(BTreeNode<T> x, TreeObject o) {
 
-			// shift everything over to the "right" up to the
-			// point where the new key k should go
-
-			while (i >= 1 && k.compareTo(x.keys[i]) < 0){ //use compare to.
-				x.keys[i+1] = x.keys[i];
-				i--;
-			}
-
-			// stick k in its right place and increase numKeys
-
-			x.keys[i+1] = k;
-			x.numKeys++;
-			DiskWrite(x);
-		}
-		else{
-
+		int i = x.numKeys - 1;
+		if (x.isLeaf) {
 			// find child where new key belongs:
-
-			while (i >= 1 && k.compareTo(x.keys[i]) < 0){//use compare to.
+			while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
 				i--;
 			}
+			if (i != -1 && o.compareTo(x.keys[i]) == 0) {
+				x.keys[i].increaseFrequency();
+			} else {
+				i = x.numKeys - 1;
+				// shift everything over to the "right" up to the
+				// point where the new key k should go
+				while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
+					x.keys[i + 1] = x.keys[i];
+					i--;
+				}
+				// stick k in its right place and increase numKeys
+				x.setKey(o, i + 1);
+				x.numKeys++;
+			}
+			DiskWrite(x);
+			// For the Cache
+			if (useCache) {
+				if (Cache.containsObject(x.current)) {
+					Cache.removeObject(x.current);
+				}
+				Cache.addObject(x);
+			}
 
-			// if k is in ci[x], then k <= keyi[x] (from the definition)
-			// we'll go back to the last key (least i) where we found this
-			// to be true, then read in that child node
-
-			i++;
-			DiskRead(x.childPointers[i]);
+		} else {
+			while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
+				i--;
+			}
+			if (i != -1 && o.compareTo(x.keys[i]) == 0) {
+				x.keys[i].increaseFrequency();
+				DiskWrite(x);
+				// For the Cache
+				if (useCache) {
+					if (Cache.containsObject(x.current)) {
+						Cache.removeObject(x.current);
+					}
+					Cache.addObject(x);
+				}
+			} else {
+				i++;
+				// For the Cache
+				if (useCache) {
+					if (Cache.containsObject(x.childPointers[i])) {
+						x = (BTree<T>.BTreeNode<T>) Cache.removeObject(x.childPointers[i]);
+					} else {
+						DiskRead(x.childPointers[i]);
+					}
+				} else {
+					DiskRead(x.childPointers[i]);
+				}
+				if (x.numKeys == maxKeys) {
+					SplitNode(x, i, x);
+					InsertNodeNonFull(x, o);
+				} else {
+					InsertNodeNonFull(x, o);
+				}
+			}
 		}
-		if (x.childPointers[i].numKeys = 2 * degree - 1){
-
-			// this child node is full, split the node
-
-			SplitNode(x, i, y);
-
-			// now ci[x] and ci+1[x] are the new children, 
-			// and keyi[x] may have been changed. 
-			// we'll see if k belongs in the first or the second
-		}
-		if (k.compareTo(x.keys[i]) > 0){
-			i++;
-		}
-
-		// call method recursively to do the insertion
-
-		InsertNodeNonFull(x, k);
-
-	}
-
-	private void DiskRead(int i) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private void DiskWrite(BTree<T>.BTreeNode<T> x) {
-		// TODO Auto-generated method stub
-		
 	}
 
 
