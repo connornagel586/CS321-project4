@@ -101,7 +101,6 @@ public class BTree<T> {
 		}
 	}
 
-
 	private void SplitNode(BTreeNode<T> x, int i,  BTreeNode<T> y) {
 
 		splitNode = new BTreeNode<T>();
@@ -134,8 +133,16 @@ public class BTree<T> {
 		diskWrite(splitNode);
 
 	}
+	
+	private void DiskRead(int i) {
+		// TODO Auto-generated method stub
 
+	}
 
+	private void DiskWrite(BTreeNode<T> x) {
+		// TODO Auto-generated method stub
+
+	}
 
 	private class BTreeNode<T> {
 
