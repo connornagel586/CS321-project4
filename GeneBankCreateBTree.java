@@ -17,6 +17,8 @@ public class GeneBankCreateBTree {
 		String startflag = "ORIGIN";
 		String endflag = "//";
 		String DELIMITER = "[actgn/]*";
+		File file = null;
+		
 
 		// Check arg length
 		try {
@@ -49,7 +51,7 @@ public class GeneBankCreateBTree {
 			}
 			// Check file
 			if (args[2].contains(".gbk")) {
-				File file = new File(args[2]);
+				file = new File(args[2]);
 				scan = new Scanner(file);
 			} else {
 				printUsage();
@@ -86,7 +88,7 @@ public class GeneBankCreateBTree {
 				}
 			}
 
-			BTree tree = new BTree(degree, sequenceLength, null);
+			BTree tree = new BTree(degree, sequenceLength, file);
 
 			while (!nextLine.contains(endflag)) {
 
@@ -182,3 +184,4 @@ public class GeneBankCreateBTree {
 				+ "<sequence length>" + "[<cache size>] [<debug level>]" + "[<debug level>]\n");
 	}
 }
+
