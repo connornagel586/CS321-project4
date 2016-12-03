@@ -9,6 +9,7 @@ public class BTree<T> {
 	File file;
 	final int nodeSize = 0;
 	RandomAccessFile raf;
+	long nodeSize;
 
 	public BTree(int keyLength, int degree, File file) throws IOException {
 		root = new BTreeNode<T>();
@@ -162,6 +163,18 @@ public class BTree<T> {
 		raf.writeBoolean(x.isLeaf);
 
 		
+	}
+	
+		private long nodeSize(){
+		int keyObjectSize = Long.BYTES + Integer.BYTES;
+		int isLeafSize = 1;
+		int pointer = Integer.BYTES;
+		int numPointers = 2*degree ;
+		int numKeys = 2*degree -1;
+		int current = Integer.BYTES;
+		
+		int size =  keyObjectSize * numKeys + pointer * numPointers + isLeafSize + current; 
+		return size ; 
 	}
 
 	private class BTreeNode<T> {
