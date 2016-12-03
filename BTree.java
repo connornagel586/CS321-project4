@@ -138,6 +138,15 @@ public class BTree<T> {
 
 	}
 	
+	private void WriteMetaData() throws IOException{
+		raf.seek(0);
+		
+		raf.writeInt(root.current);
+		raf.writeInt(keyLength);
+		raf.writeInt(degree);
+		raf.writeInt(nodeCount);
+	}
+	
 	private void DiskRead(BTreeNode<T> x) {
 		
 
