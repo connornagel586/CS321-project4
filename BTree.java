@@ -1,10 +1,13 @@
 import java.io.File;
+import java.io.RandomAccessFile;
 
 public class BTree<T> {
 	private static int degree;
 	BTreeNode<T> root, r , s, splitNode, child;
 	int keyLength, nodeCount, maxKeys;
 	File file;
+	final int nodeSize = ;
+	RandomAccessFile raf;
 
 	public BTree(int keyLength, int degree, File file) {
 		root = new BTreeNode<T>();
@@ -14,6 +17,7 @@ public class BTree<T> {
 		this.keyLength = keyLength;
 		maxKeys = 2 * degree - 1;
 		this.file = file;
+		raf = new RandomAccessFile(file.getName() + ".btree.data." + keyLength + "." + degree + ".bin" , rw);
 	}
 
 	private void InsertNode(TreeObject o) {
@@ -134,14 +138,28 @@ public class BTree<T> {
 
 	}
 	
-	private void DiskRead(int i) {
-		// TODO Auto-generated method stub
+	private void DiskRead(BTreeNode<T> x) {
+		
 
 	}
 
 	private void DiskWrite(BTreeNode<T> x) {
-		// TODO Auto-generated method stub
+		
+		raf.seek(index * nodeSize);
 
+		for(int i = 0; i < x.numKeys; i++){
+		raf.writeLong(x.keys.getKey(i));
+		raf.writeInt(x.keys[i].freq);
+		}
+		raf.writeInt(x.current);
+		for(int i = 0; i < x.childPointers.length; i++ ){
+		raf.writeInt(x.childPointers[i]);
+		}
+		raf.writeInt(x.numKeys);
+		raf.writeInt(x.parent);
+		raf.writeBoolean(x.isLeaf);
+
+		
 	}
 
 	private class BTreeNode<T> {
@@ -151,6 +169,8 @@ public class BTree<T> {
 		int[] childPointers; // This will be useful for a couple of things
 		int numKeys, parent; // So we know when we are full.
 		
+		
+
 		boolean isLeaf; // We will have to set this when we reach a leaf.
 
 		// Not sure if we need both constructors lol just shotgunning this one.
