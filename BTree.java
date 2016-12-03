@@ -165,6 +165,15 @@ public class BTree<T> {
 		
 	}
 	
+	private void WriteMetaData() throws IOException {
+		raf.seek(0);
+
+		raf.writeInt(root.current);
+		raf.writeInt(keyLength);
+		raf.writeInt(degree);
+		raf.writeInt(nodeCount);
+	}
+	
 		private long nodeSize(){
 		int keyObjectSize = Long.BYTES + Integer.BYTES;
 		int isLeafSize = 1;
