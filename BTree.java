@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class BTree<T> {
@@ -6,10 +7,10 @@ public class BTree<T> {
 	BTreeNode<T> root, r , s, splitNode, child;
 	int keyLength, nodeCount, maxKeys;
 	File file;
-	final int nodeSize = ;
+	final int nodeSize = 0;
 	RandomAccessFile raf;
 
-	public BTree(int keyLength, int degree, File file) {
+	public BTree(int keyLength, int degree, File file) throws IOException {
 		root = new BTreeNode<T>();
 		root.isLeaf = true;
 		root.numKeys = 0;
@@ -17,7 +18,8 @@ public class BTree<T> {
 		this.keyLength = keyLength;
 		maxKeys = 2 * degree - 1;
 		this.file = file;
-		raf = new RandomAccessFile(file.getName() + ".btree.data." + keyLength + "." + degree + ".bin" , rw);
+		raf = new RandomAccessFile(file.getName() + ".btree.data." + keyLength + "." + degree + ".bin" , "rw");
+		raf.seek(16);
 	}
 
 	private void InsertNode(TreeObject o) {
@@ -105,7 +107,7 @@ public class BTree<T> {
 		}
 	}
 
-	private void SplitNode(BTreeNode<T> x, int i,  BTreeNode<T> y) {
+	private void SplitNode(BTreeNode<T> x, int i,  BTreeNode<T> y) throws IOException {
 
 		splitNode = new BTreeNode<T>();
 		nodeCount++; // We need to keep track of the amount of nodes.
@@ -132,19 +134,10 @@ public class BTree<T> {
 		}
 		x.keys[i] = y.keys[degree - 1];
 		x.numKeys++;
-		diskWrite(x);
-		diskWrite(y);
-		diskWrite(splitNode);
+		DiskWrite(x);
+		DiskWrite(y);
+		DiskWrite(splitNode);
 
-	}
-	
-	private void WriteMetaData() throws IOException{
-		raf.seek(0);
-		
-		raf.writeInt(root.current);
-		raf.writeInt(keyLength);
-		raf.writeInt(degree);
-		raf.writeInt(nodeCount);
 	}
 	
 	private void DiskRead(BTreeNode<T> x) {
@@ -152,13 +145,13 @@ public class BTree<T> {
 
 	}
 
-	private void DiskWrite(BTreeNode<T> x) {
+	private void DiskWrite(BTreeNode<T> x) throws IOException {
 		
-		raf.seek(index * nodeSize);
+		raf.seek(x.current * x.nodeSize() + 16);
 
 		for(int i = 0; i < x.numKeys; i++){
-		raf.writeLong(x.keys.getKey(i));
-		raf.writeInt(x.keys[i].freq);
+		raf.writeLong(x.getKeys(i).getKey());
+		raf.writeInt(x.keys[i].getFreq());
 		}
 		raf.writeInt(x.current);
 		for(int i = 0; i < x.childPointers.length; i++ ){
@@ -195,7 +188,7 @@ public class BTree<T> {
 			numKeys = 0;
 		}
 
-		TreeObject getKey(int i) {
+		TreeObject getKeys(int i) {
 			return keys[i];
 
 		}
