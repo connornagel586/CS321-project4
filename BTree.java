@@ -7,7 +7,6 @@ public class BTree<T> {
 	BTreeNode<T> root, r , s, splitNode, child;
 	int keyLength, nodeCount, maxKeys;
 	File file;
-	final int nodeSize = 0;
 	RandomAccessFile raf;
 	long nodeSize;
 	boolean useCache = false;
@@ -142,14 +141,27 @@ public class BTree<T> {
 
 	}
 	
-	private void DiskRead(BTreeNode<T> x) {
-		
+	private void DiskRead(int i) {
+		raf.seek((i * nodeSize()) + 16);
+		BTreeNode<T> node = new BTreeNode<T>();
+			
+		for(int i = 0; i < x.numKeys; i++){
+		node.keys[i] = new TreeObject(raf.readLong());
+		node.keys[i].setFreq(raf.readInt());
+		}
+		node.current = raf.readInt();
+		for(int i = 0; i < x.childPointers.length; i++ ){
+		node.childPointers[i] = raf.readInt();
+		}
+		node.numKeys = raf.readInt();
+		node.parent = raf.readInt();
+		node.isLeaf = raf.readBoolean();
 
 	}
 
 	private void DiskWrite(BTreeNode<T> x) throws IOException {
 		
-		raf.seek(x.current * x.nodeSize() + 16);
+		raf.seek((x.current * nodeSize()) + 16);
 
 		for(int i = 0; i < x.numKeys; i++){
 		raf.writeLong(x.getKeys(i).getKey());
