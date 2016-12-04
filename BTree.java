@@ -68,12 +68,12 @@ public class BTree<T> {
 			DiskWrite(x);
 			// For the Cache
 			if (useCache) {
-				if (Cache.containsObject(x.current)) {
+/*				if (Cache.containsObject(x.current)) {
 					Cache.removeObject(x.current);
 				}
 				Cache.addObject(x);
 			}
-
+*/
 		} else {
 			while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
 				i--;
@@ -83,20 +83,20 @@ public class BTree<T> {
 				DiskWrite(x);
 				// For the Cache
 				if (useCache) {
-					if (Cache.containsObject(x.current)) {
+		/*			if (Cache.containsObject(x.current)) {
 						Cache.removeObject(x.current);
 					}
 					Cache.addObject(x);
-				}
+			*/	}
 			} else {
 				i++;
 				// For the Cache
 				if (useCache) {
-					if (Cache.containsObject(x.childPointers[i])) {
+			/*		if (Cache.containsObject(x.childPointers[i])) {
 						x = (BTree<T>.BTreeNode<T>) Cache.removeObject(x.childPointers[i]);
 					} else {
 						DiskRead(x.childPointers[i]);
-					}
+					}*/
 				} else {
 					DiskRead(x.childPointers[i]);
 				}
