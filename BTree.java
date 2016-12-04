@@ -166,7 +166,7 @@ public class BTree<T> {
 		raf.seek((x.current * nodeSize()) + 16);
 
 		for(int i = 0; i < x.numKeys; i++){
-		raf.writeLong(x.keys[i].getKey(i));
+		raf.writeLong(x.keys[i].getKey());
 		raf.writeInt(x.keys[i].getFreq());
 		}
 		raf.writeInt(x.current);
@@ -217,7 +217,7 @@ public class BTree<T> {
 			for(int i = 0; i < root.numKeys ; i++) {
 				sb.append(root.keys[i].getKey());
 				sb.append("(");
-				sb.append(root.keys[i].getFrequency());
+				sb.append(root.keys[i].getFreq());
 				sb.append(")");
 				// Skip the last "|"
 				if (i != root.numKeys - 1) {	
@@ -284,4 +284,3 @@ public class BTree<T> {
 		}
 	}
 }
-
