@@ -189,6 +189,47 @@ public class BTree<T> {
 		raf.writeInt(nodeCount);
 	}
 	
+	public String printNode() {
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append("[");
+			for(int i = 0; i < root.numKeys ; i++)
+			{
+				sb.append(root.keys[i].getKey());
+				// Skip the last "|"
+				if (i != root.numKeys - 1) { 
+				sb.append("|");
+				}
+			}
+			sb.append("]");
+
+			return sb.toString();
+		}
+
+		/**
+		 * Prints node content and associated Frequency.
+		 */
+		public String printNodeFreq() {
+			
+			StringBuilder sb = new StringBuilder();
+			sb.append("[");
+			
+			for(int i = 0; i < root.numKeys ; i++) {
+				sb.append(root.keys[i].getKey());
+				sb.append("(");
+				sb.append(root.keys[i].getFrequency());
+				sb.append(")");
+				// Skip the last "|"
+				if (i != root.numKeys - 1) {	
+					sb.append("|");
+				}
+			}
+			sb.append("]");
+
+			return sb.toString();
+		}
+
+	
 		private long nodeSize(){
 		int keyObjectSize = Long.BYTES + Integer.BYTES;
 		int isLeafSize = 1;
