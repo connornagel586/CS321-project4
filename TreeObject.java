@@ -23,7 +23,7 @@ public class TreeObject implements Comparable<TreeObject>{
 		this.freq = f;
 }
 	
-	public Long getKey(int m){
+	public Long getKey(){
 		return (Long) key;
 	}
 	
