@@ -19,6 +19,10 @@ public class TreeObject implements Comparable<TreeObject>{
 		return freq;
 	}
 	
+	public void setFreq(int f){
+		this.freq = f;
+}
+	
 	public Long getKey(int m){
 		return (Long) key;
 	}

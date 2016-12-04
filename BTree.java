@@ -10,6 +10,7 @@ public class BTree<T> {
 	RandomAccessFile raf;
 	long nodeSize;
 	boolean useCache = false;
+	Cache Cache;
 
 	public BTree(int keyLength, int degree, File file) throws IOException {
 		root = new BTreeNode<T>();
@@ -19,6 +20,7 @@ public class BTree<T> {
 		this.keyLength = keyLength;
 		maxKeys = 2 * degree - 1;
 		this.file = file;
+		Cache = new Cache(1000);
 		raf = new RandomAccessFile(file.getName() + ".btree.data." + keyLength + "." + degree + ".bin" , "rw");
 		raf.seek(16);
 	}
@@ -141,8 +143,8 @@ public class BTree<T> {
 
 	}
 	
-	private void DiskRead(int i) {
-		raf.seek((i * nodeSize()) + 16);
+	private void DiskRead(int j) {
+		raf.seek((j * nodeSize()) + 16);
 		BTreeNode<T> node = new BTreeNode<T>();
 			
 		for(int i = 0; i < x.numKeys; i++){
@@ -164,7 +166,7 @@ public class BTree<T> {
 		raf.seek((x.current * nodeSize()) + 16);
 
 		for(int i = 0; i < x.numKeys; i++){
-		raf.writeLong(x.getKeys(i).getKey());
+		raf.writeLong(x.keys[i].getKey());
 		raf.writeInt(x.keys[i].getFreq());
 		}
 		raf.writeInt(x.current);
