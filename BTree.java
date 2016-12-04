@@ -25,7 +25,7 @@ public class BTree<T> {
 		raf.seek(16);
 	}
 
-	public void InsertNode(TreeObject o) {
+	public void InsertNode(TreeObject o) throws IOException {
 		r = root;
 		if (r.isFull()) {
 			// uh-oh, the root is full, we have to split it
@@ -143,16 +143,16 @@ public class BTree<T> {
 
 	}
 	
-	private void DiskRead(int j) {
+	private void DiskRead(int j) throws IOException {
 		raf.seek((j * nodeSize()) + 16);
 		BTreeNode<T> node = new BTreeNode<T>();
 			
-		for(int i = 0; i < x.numKeys; i++){
+		for(int i = 0; i < 2 * degree - 1; i++){
 		node.keys[i] = new TreeObject(raf.readLong());
 		node.keys[i].setFreq(raf.readInt());
 		}
 		node.current = raf.readInt();
-		for(int i = 0; i < x.childPointers.length; i++ ){
+		for(int i = 0; i < 2 * degree; i++ ){
 		node.childPointers[i] = raf.readInt();
 		}
 		node.numKeys = raf.readInt();
@@ -166,7 +166,7 @@ public class BTree<T> {
 		raf.seek((x.current * nodeSize()) + 16);
 
 		for(int i = 0; i < x.numKeys; i++){
-		raf.writeLong(x.keys[i].getKey());
+		raf.writeLong(x.keys[i].getKey(i));
 		raf.writeInt(x.keys[i].getFreq());
 		}
 		raf.writeInt(x.current);
@@ -243,3 +243,4 @@ public class BTree<T> {
 		}
 	}
 }
+
