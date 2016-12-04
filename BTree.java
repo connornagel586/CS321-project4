@@ -10,6 +10,7 @@ public class BTree<T> {
 	final int nodeSize = 0;
 	RandomAccessFile raf;
 	long nodeSize;
+	boolean useCache = false;
 
 	public BTree(int keyLength, int degree, File file) throws IOException {
 		root = new BTreeNode<T>();
@@ -23,7 +24,7 @@ public class BTree<T> {
 		raf.seek(16);
 	}
 
-	private void InsertNode(TreeObject o) {
+	public void InsertNode(TreeObject o) {
 		r = root;
 		if (r.isFull()) {
 			// uh-oh, the root is full, we have to split it
@@ -41,7 +42,7 @@ public class BTree<T> {
 			InsertNodeNonFull(r, o);
 	}
 
-	private void InsertNodeNonFull(BTreeNode<T> x, TreeObject o) {
+	public void InsertNodeNonFull(BTreeNode<T> x, TreeObject o) {
 
 		int i = x.numKeys - 1;
 		if (x.isLeaf) {
