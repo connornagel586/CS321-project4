@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -10,9 +11,12 @@ public class BTree<T> {
 	RandomAccessFile raf;
 	long nodeSize;
 	boolean useCache = false;
-	Cache Cache;
+	//Cache Cache;
+	Cache <BTreeNode> Cache;
+	int sizeOfCache=0;
+	
 
-	public BTree(int keyLength, int degree, File file) throws IOException {
+	public BTree(int keyLength, int degree, File file,int cacheSize) throws IOException {
 		root = new BTreeNode<T>();
 		root.isLeaf = true;
 		root.numKeys = 0;
@@ -20,7 +24,12 @@ public class BTree<T> {
 		this.keyLength = keyLength;
 		maxKeys = 2 * degree - 1;
 		this.file = file;
-		Cache = new Cache(1000);
+		//Cache = new Cache(1000); -> insted hardcoding the size, passing cache size by argument
+		sizeOfCache = cacheSize;
+		if (sizeOfCache>0){
+			useCache=true;
+			this.Cache = new Cache <BTreeNode>(sizeOfCache);
+		}
 		raf = new RandomAccessFile(file.getName() + ".btree.data." + keyLength + "." + degree + ".bin", "rw");
 		raf.seek(16);
 	}
@@ -186,6 +195,72 @@ public class BTree<T> {
 		raf.writeInt(keyLength);
 		raf.writeInt(degree);
 		raf.writeInt(nodeCount);
+	}
+	
+
+	public BTreeNode<T> readCache(BTreeNode<T> x){
+		  if (Cache.removeObject(x)){
+		  		Cache.addObject(x);
+		  		
+		  }else{
+			  //************************** Need to pass node offsete
+		  		x = DiskRead(x.);
+			  	BTreeNode<T> dump = Cache.addObject(x);
+		  		if (dump!=null){
+		  			DiskWrite(dump);
+		  		}
+		  }
+		  return x;
+		
+	}
+	
+	public void useingCache(BTreeNode<T> x){
+
+	  if (Cache.removeObject(x)){
+	  		Cache.addObject(x);
+	  }else{
+	  		BTreeNode<T> dump = Cache.addObject(x);
+	  		if (dump!=null){
+	  			DiskWrite(dump);
+	  		}
+	  }
+	 
+	}
+	
+	/*
+	 * Search
+	 */
+	
+	public TreeObject search(BTreeNode<T> x) {
+		TreeObject k = new TreeObject(nodeSize);
+		int i = 0;
+		while (i < x.numKeys && (k).compareTo(x.keys[i]) > 0) {
+			i++;
+		}
+		if (i < x.numKeys && k.compareTo(x.keys[i]) == 0) {
+			x.keys[i].increaseFrequency();
+			
+			if(useCache){
+				useingCache(x);
+			}else{
+				DiskWrite(x);
+			}
+
+			return x.keys[i];
+		} else if (x.current == 1) {
+
+			return null;
+		} else {
+			if(useCache){
+				//************************** Need to Pass node array data
+				readCache(x.);
+			}else{
+				//************************** Need to Pass node offeset
+				diskRead(x.);
+			}
+			//************************** Need to retrun node array data
+			return search(x.);
+		}
 	}
 
 	public String printNode() {
