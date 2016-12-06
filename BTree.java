@@ -10,27 +10,26 @@ public class BTree<T> {
 	RandomAccessFile raf;
 	long nodeSize;
 	boolean useCache = false;
-	//Cache Cache;
-	Cache <BTreeNode> Cache;
-	int sizeOfCache=0;
-	
+	// Cache Cache;
+	Cache<BTreeNode> Cache;
+	int sizeOfCache = 0;
 
-	public BTree(int keyLength, int degree, File file) throws IOException {
+	public BTree(int degree, File file) throws IOException {
 		root = new BTreeNode<T>();
 		root.isLeaf = true;
 		root.numKeys = 0;
 		root.current = 1;
 		this.keyLength = keyLength;
+		raf = new RandomAccessFile(file, "rw");
 		maxKeys = 2 * degree - 1;
 		this.file = file;
 		int cacheSize = 1000;
-		//Cache = new Cache(1000); 
+		// Cache = new Cache(1000);
 		sizeOfCache = cacheSize;
-		if (sizeOfCache>0){
-			useCache=true;
-			this.Cache = new Cache <BTreeNode>(sizeOfCache);
+		if (sizeOfCache > 0) {
+			useCache = true;
+			this.Cache = new Cache<BTreeNode>(sizeOfCache);
 		}
-		raf = new RandomAccessFile(file.getName() + ".btree.data." + keyLength + "." + degree + ".bin", "rw");
 		raf.seek(16);
 	}
 
@@ -196,9 +195,8 @@ public class BTree<T> {
 		raf.writeInt(degree);
 		raf.writeInt(nodeCount);
 	}
-	
 
-	public BTreeNode<T> readCache(BTreeNode<T> x){
+	/*public BTreeNode<T> readCache(BTreeNode<T> x){
 		  if (Cache.removeObject(x)){
 		  		Cache.addObject(x);
 		  		
@@ -213,24 +211,24 @@ public class BTree<T> {
 		  return x;
 		
 	}
-	
-	public void useingCache(BTreeNode<T> x){
 
-	  if (Cache.removeObject(x)){
-	  		Cache.addObject(x);
-	  }else{
-	  		BTreeNode<T> dump = Cache.addObject(x);
-	  		if (dump!=null){
-	  			DiskWrite(dump);
-	  		}
-	  }
-	 
+	public void useingCache(BTreeNode<T> x) {
+
+		if (Cache.removeObject(x)) {
+			Cache.addObject(x);
+		} else {
+			BTreeNode<T> dump = Cache.addObject(x);
+			if (dump != null) {
+				DiskWrite(dump);
+			}
+		}
+
 	}
+
 	
-	/*
 	 * Search
-	 */
-	
+	 
+
 	public TreeObject search(BTreeNode<T> x) {
 		TreeObject k = new TreeObject(nodeSize);
 		int i = 0;
@@ -262,7 +260,7 @@ public class BTree<T> {
 			return search(x.);
 		}
 	}
-
+*/
 	public String printNode() {
 
 		StringBuilder sb = new StringBuilder();
