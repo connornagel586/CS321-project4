@@ -94,8 +94,7 @@ public class GeneBankCreateBTree {
 			scan = new Scanner(file);
 			nextLine = scan.nextLine();
 
-			while (true) { // Continue until endflag is found -- just after DNA
-							// sequences.
+			while (true) { // Continue until end.
 
 				while (!notDone) {
 					nextLine = scan.nextLine();
@@ -106,29 +105,24 @@ public class GeneBankCreateBTree {
 					}
 				}
 
-				// Apply delimiter to the scanner.
 				scan.useDelimiter(DELIMITER);
 
-				int start = 0; // reset cursor
-				line = nextLine; // advance line
-				nextLine = scan.nextLine().toLowerCase().trim(); // grab next
-																	// line
+				int start = 0; 
+				line = nextLine; 
+				nextLine = scan.nextLine().toLowerCase().trim(); 
 
 				// Collect DNA sequence.
 				while (start < line.length()) {
 
 					int end = start + sequenceLength;
 
-					if (end < line.length()) { // If the sequence to be
-												// collected fits on the current
-												// line...
+					if (end < line.length()) { 
 
 						for (int i = start; i < end; i++) {
 							sequence2 += line.charAt(i);
 						}
 
-					} else { // else, we have to wrap to the next line to finish
-								// the sequence.
+					} else { 
 
 						if (nextLine.contains(endflag)) {
 							notDone = false;
@@ -222,4 +216,3 @@ public class GeneBankCreateBTree {
 				+ "<sequence length> 1<=k<=31>" + "[<cache size>] [<debug level>]" + "[<debug level>]\n");
 	}
 }
-
