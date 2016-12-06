@@ -1,6 +1,9 @@
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Stack;
 
 public class BTree<T> {
 	private static int degree;
@@ -33,7 +36,7 @@ public class BTree<T> {
 		raf.seek(16);
 	}
 
-	public void InsertNode(TreeObject o) throws IOException {
+	public void insertNode(TreeObject o) throws IOException {
 		r = root;
 		if (r.isFull()) {
 			// uh-oh, the root is full, we have to split it
@@ -43,15 +46,14 @@ public class BTree<T> {
 			root = s; // new root node
 			s.isLeaf = false; // will have some children
 			s.numKeys = 0; // for now
-			r.parent = s.current;
 			s.childPointers[1] = r.current; // child is the old root node
-			SplitNode(s, 1, r); // r is split
-			InsertNodeNonFull(s, o); // s is clearly not full
+			splitNode(s, 1, r); // r is split
+			insertNodeNonFull(s, o); // s is clearly not full
 		} else
-			InsertNodeNonFull(r, o);
+			insertNodeNonFull(r, o);
 	}
 
-	public void InsertNodeNonFull(BTreeNode<T> x, TreeObject o) throws IOException {
+	public void insertNodeNonFull(BTreeNode<T> x, TreeObject o) throws IOException {
 
 		int i = x.numKeys - 1;
 		if (x.isLeaf) {
@@ -73,7 +75,7 @@ public class BTree<T> {
 				x.setKey(o, i + 1);
 				x.numKeys++;
 			}
-			DiskWrite(x);
+			diskWrite(x);
 			// For the Cache
 			if (useCache) {
 				/*
@@ -86,7 +88,7 @@ public class BTree<T> {
 				}
 				if (i != -1 && o.compareTo(x.keys[i]) == 0) {
 					x.keys[i].increaseFrequency();
-					DiskWrite(x);
+					diskWrite(x);
 					// For the Cache
 					if (useCache) {
 						/*
@@ -107,10 +109,10 @@ public class BTree<T> {
 						DiskRead(x.childPointers[i]);
 					}
 					if (x.numKeys == maxKeys) {
-						SplitNode(x, i, x);
-						InsertNodeNonFull(x, o);
+						splitNode(x, i, x);
+						insertNodeNonFull(x, o);
 					} else {
-						InsertNodeNonFull(x, o);
+						insertNodeNonFull(x, o);
 					}
 
 				}
@@ -118,7 +120,7 @@ public class BTree<T> {
 		}
 	}
 
-	private void SplitNode(BTreeNode<T> x, int i, BTreeNode<T> y) throws IOException {
+	private void splitNode(BTreeNode<T> x, int i, BTreeNode<T> y) throws IOException {
 
 		splitNode = new BTreeNode<T>();
 		nodeCount++; // We need to keep track of the amount of nodes.
@@ -139,166 +141,159 @@ public class BTree<T> {
 			x.childPointers[j + 1] = x.childPointers[j];
 		}
 		x.childPointers[i + 1] = splitNode.current;
-		splitNode.parent = x.current;
 		for (int j = x.numKeys - 1; j >= i; j--) {
 			x.keys[j + 1] = x.keys[j];
 		}
 		x.keys[i] = y.keys[degree - 1];
 		x.numKeys++;
-		DiskWrite(x);
-		DiskWrite(y);
-		DiskWrite(splitNode);
+		diskWrite(x);
+		diskWrite(y);
+		diskWrite(splitNode);
 
 	}
 
-	private void DiskRead(int j) throws IOException {
-		raf.seek((j * nodeSize()) + 16);
+	private int diskWrite(BTreeNode<T> x) throws IOException {
+
+		if (!x.isLeaf) {
+			x.current = nodeCount++;
+			x.isLeaf = true;
+		}
+
+		raf.seek(16 + x.current * nodeSize());
+
+		raf.writeInt(degree);
+
+		// Writing the KeyObject
+		for (int i = 0; i < 2 * degree - 1; i++) {
+			raf.writeLong(x.keys[i].getKey());
+			raf.writeInt(x.keys[i].getFreq());
+		}
+
+		// Writing the pointers
+		for (int i = 0; i < 2 * degree; i++) {
+			raf.writeLong(x.childPointers[i]);
+		}
+		
+		//Writing Meta Data
+		raf.writeBoolean(x.isLeaf);
+		raf.writeInt(x.numKeys);
+		raf.writeBoolean(x.isLeaf);
+		raf.writeInt(x.current);
+		return x.current;
+	}
+
+	private BTreeNode<T> DiskRead(long offset) throws IOException {
+
+		raf.seek(16 + offset * nodeSize());
+
 		BTreeNode<T> node = new BTreeNode<T>();
 
+		// Reading the degree from the file.
+		degree = raf.readInt();
+
+		// Reading the KeyObject
 		for (int i = 0; i < 2 * degree - 1; i++) {
 			node.keys[i] = new TreeObject(raf.readLong());
 			node.keys[i].setFreq(raf.readInt());
 		}
-		node.current = raf.readInt();
+
+		// Reading the pointers
 		for (int i = 0; i < 2 * degree; i++) {
-			node.childPointers[i] = raf.readInt();
+			node.childPointers[i] = raf.readLong();
 		}
-		node.numKeys = raf.readInt();
-		node.parent = raf.readInt();
-		node.isLeaf = raf.readBoolean();
-
-	}
-
-	private void DiskWrite(BTreeNode<T> x) throws IOException {
-
-		raf.seek((x.current * nodeSize()) + 16);
-
-		for (int i = 0; i < x.numKeys; i++) {
-			raf.writeLong(x.keys[i].getKey());
-			raf.writeInt(x.keys[i].getFreq());
-		}
-		raf.writeInt(x.current);
-		for (int i = 0; i < x.childPointers.length; i++) {
-			raf.writeInt(x.childPointers[i]);
-		}
-		raf.writeInt(x.numKeys);
-		raf.writeInt(x.parent);
-		raf.writeBoolean(x.isLeaf);
-
-	}
-
-	private void WriteMetaData() throws IOException {
-		raf.seek(0);
-
-		raf.writeInt(root.current);
-		raf.writeInt(keyLength);
-		raf.writeInt(degree);
-		raf.writeInt(nodeCount);
-	}
-
-	/*public BTreeNode<T> readCache(BTreeNode<T> x){
-		  if (Cache.removeObject(x)){
-		  		Cache.addObject(x);
-		  		
-		  }else{
-			  //************************** Need to pass node offsete
-		  		x = DiskRead(x.);
-			  	BTreeNode<T> dump = Cache.addObject(x);
-		  		if (dump!=null){
-		  			DiskWrite(dump);
-		  		}
-		  }
-		  return x;
 		
+		// Reading MetaData
+		node.isLeaf = raf.readBoolean();
+		node.numKeys = raf.readInt();
+		node.isLeaf = raf.readBoolean();
+		node.current = raf.readInt();
+
+		return node;
 	}
 
-	public void useingCache(BTreeNode<T> x) {
+	public void debugPrintIOT(File travFile) throws IOException {
+		FileWriter fWriter = new FileWriter(travFile);
+		BufferedWriter out = new BufferedWriter(fWriter);
 
-		if (Cache.removeObject(x)) {
-			Cache.addObject(x);
-		} else {
-			BTreeNode<T> dump = Cache.addObject(x);
-			if (dump != null) {
-				DiskWrite(dump);
-			}
-		}
+		Stack<Pair> stack = new Stack<Pair>();
 
-	}
+		stack.push(new Pair(0, 0));
 
-	
-	 * Search
-	 
+		while (!stack.isEmpty()) {
+			Pair pair = stack.pop();
+			BTreeNode<T> currNode = DiskRead(pair.getIndex());
+			int keyPosition = pair.getKeyPosition();
 
-	public TreeObject search(BTreeNode<T> x) {
-		TreeObject k = new TreeObject(nodeSize);
-		int i = 0;
-		while (i < x.numKeys && (k).compareTo(x.keys[i]) > 0) {
-			i++;
-		}
-		if (i < x.numKeys && k.compareTo(x.keys[i]) == 0) {
-			x.keys[i].increaseFrequency();
-			
-			if(useCache){
-				useingCache(x);
-			}else{
-				DiskWrite(x);
+			if (currNode.isLeaf) {
+				for (int i = 0; i < currNode.numKeys; i++) {
+					out.write(currNode.keys[i].getFreq() + "  " + currNode.keys[i].getKey());
+					out.newLine();
+				}
+
+				continue;
+			} else if (keyPosition > 0) {
+				out.write(currNode.keys[keyPosition - 1].getFreq() + "  " + currNode.keys[keyPosition - 1].getKey());
+				out.newLine();
 			}
 
-			return x.keys[i];
-		} else if (x.current == 1) {
+			if (keyPosition < currNode.numKeys)
+				stack.push(new Pair(pair.getIndex(), keyPosition + 1));
 
-			return null;
-		} else {
-			if(useCache){
-				//************************** Need to Pass node array data
-				readCache(x.);
-			}else{
-				//************************** Need to Pass node offeset
-				diskRead(x.);
-			}
-			//************************** Need to retrun node array data
-			return search(x.);
+			BTreeNode<T> childNode = DiskRead(currNode.childPointers[keyPosition]);
+
+			stack.push(new Pair(childNode.current, 0));
 		}
-	}
-*/
-	public String printNode() {
-
-		StringBuilder sb = new StringBuilder();
-		sb.append("[");
-		for (int i = 0; i < root.numKeys; i++) {
-			sb.append(root.keys[i].getKey());
-			// Skip the last "|"
-			if (i != root.numKeys - 1) {
-				sb.append("|");
-			}
-		}
-		sb.append("]");
-
-		return sb.toString();
+		out.close();
 	}
 
 	/**
-	 * Prints node content and associated Frequency.
+	 * 
+	 *
 	 */
-	public String printNodeFreq() {
+	private class Pair {
+		private int i;
+		private int keyCurrentPos;
 
-		StringBuilder sb = new StringBuilder();
-		sb.append("[");
-
-		for (int i = 0; i < root.numKeys; i++) {
-			sb.append(root.keys[i].getKey());
-			sb.append("(");
-			sb.append(root.keys[i].getFreq());
-			sb.append(")");
-			// Skip the last "|"
-			if (i != root.numKeys - 1) {
-				sb.append("|");
-			}
+		private Pair(int i, int keyCurrentPos) {
+			this.i = i;
+			this.keyCurrentPos = keyCurrentPos;
 		}
-		sb.append("]");
 
-		return sb.toString();
+		int getIndex() {
+			return i;
+		}
+
+		int getKeyPosition() {
+			return keyCurrentPos;
+		}
 	}
+
+	/*
+	 * public BTreeNode<T> readCache(BTreeNode<T> x){ if
+	 * (Cache.removeObject(x)){ Cache.addObject(x);
+	 * 
+	 * }else{ //************************** Need to pass node offsete x =
+	 * DiskRead(x.); BTreeNode<T> dump = Cache.addObject(x); if (dump!=null){
+	 * DiskWrite(dump); } } return x;
+	 * 
+	 * } public void useingCache(BTreeNode<T> x) { if (Cache.removeObject(x)) {
+	 * Cache.addObject(x); } else { BTreeNode<T> dump = Cache.addObject(x); if
+	 * (dump != null) { DiskWrite(dump); } } }
+	 * 
+	 * Search
+	 * 
+	 * public TreeObject search(BTreeNode<T> x) { TreeObject k = new
+	 * TreeObject(nodeSize); int i = 0; while (i < x.numKeys &&
+	 * (k).compareTo(x.keys[i]) > 0) { i++; } if (i < x.numKeys &&
+	 * k.compareTo(x.keys[i]) == 0) { x.keys[i].increaseFrequency();
+	 * 
+	 * if(useCache){ useingCache(x); }else{ DiskWrite(x); } return x.keys[i]; }
+	 * else if (x.current == 1) { return null; } else { if(useCache){
+	 * //************************** Need to Pass node array data readCache(x.);
+	 * }else{ //************************** Need to Pass node offeset
+	 * diskRead(x.); } //************************** Need to retrun node array
+	 * data return search(x.); } }
+	 */
 
 	private long nodeSize() {
 		int keyObjectSize = Long.BYTES + Integer.BYTES;
@@ -312,25 +307,26 @@ public class BTree<T> {
 		return size;
 	}
 
+	@SuppressWarnings("hiding")
 	private class BTreeNode<T> {
 
 		TreeObject[] keys;
 		public int current; // Keeps track of were we are at.
-		int[] childPointers; // This will be useful for a couple of things
-		int numKeys, parent; // So we know when we are full.
+		long[] childPointers; // This will be useful for a couple of things
+		int numKeys; // So we know when we are full.
 
 		boolean isLeaf; // We will have to set this when we reach a leaf.
 
 		// Not sure if we need both constructors lol just shotgunning this one.
 		BTreeNode() {
-			keys = new TreeObject[2 * degree - 1];
-			childPointers = new int[2 * degree];
+			keys = new TreeObject[maxKeys];
+			childPointers = new long[2 * degree];
 			numKeys = 0;
 		}
 
 		BTreeNode(int i) {
 			keys = new TreeObject[2 * i - 1];
-			childPointers = new int[2 * i];
+			childPointers = new long[2 * i];
 			numKeys = 0;
 		}
 
