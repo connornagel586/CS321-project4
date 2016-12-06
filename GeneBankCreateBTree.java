@@ -146,10 +146,10 @@ public class GeneBankCreateBTree {
 						}
 					}
 
-					// Convert the collected DNA sequence to binary.
-					if (sequence2.length() == sequenceLength) { // Discard any
-																// sequences !=
-																// k in length.
+					// Converts DNA sequence to binary.
+					if (sequence2.length() == sequenceLength) { // makes sure
+																// sequence is k
+																// in length.
 						for (int i = 0; i < sequence2.length(); i++) {
 							char c = sequence2.charAt(i);
 
@@ -167,22 +167,19 @@ public class GeneBankCreateBTree {
 								sequence1 += "11";
 								break;
 							case ('n'):
-								sequence1 = ""; // Unreadable DNA, discard
-												// entire sequence.
+								sequence1 = ""; // Skips the n's.
+
 								break;
 							}
 						}
 
-						// Add the binary sequence to the tree, ignore sequences
-						// of inappropriate length.
+						// Add the binary sequence to the tree.
 						if (sequence1.length() == sequenceLength * 2) {
-							TreeObject obj = new TreeObject(Long.parseLong(sequence1));
+							TreeObject o = new TreeObject(Long.parseLong(sequence1));
 							try {
-								tree.InsertNode(obj);
+								tree.InsertNode(o);
 
 							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								System.err.println("fail");
 								e.printStackTrace();
 							}
 						}
@@ -225,3 +222,4 @@ public class GeneBankCreateBTree {
 				+ "<sequence length> 1<=k<=31>" + "[<cache size>] [<debug level>]" + "[<debug level>]\n");
 	}
 }
+
