@@ -1,4 +1,3 @@
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -16,7 +15,7 @@ public class BTree<T> {
 	int sizeOfCache=0;
 	
 
-	public BTree(int keyLength, int degree, File file,int cacheSize) throws IOException {
+	public BTree(int keyLength, int degree, File file) throws IOException {
 		root = new BTreeNode<T>();
 		root.isLeaf = true;
 		root.numKeys = 0;
@@ -24,7 +23,8 @@ public class BTree<T> {
 		this.keyLength = keyLength;
 		maxKeys = 2 * degree - 1;
 		this.file = file;
-		//Cache = new Cache(1000); -> insted hardcoding the size, passing cache size by argument
+		int cacheSize = 1000;
+		//Cache = new Cache(1000); 
 		sizeOfCache = cacheSize;
 		if (sizeOfCache>0){
 			useCache=true;
