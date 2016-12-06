@@ -125,27 +125,43 @@ public class BTree<T> {
 		split = new BTreeNode<T>();
 		nodeCount++; // We need to keep track of the amount of nodes.
 		split.current = nodeCount;
-		split.isLeaf = y.isLeaf; // Set our isLeaf flag.
+		// new node is a leaf if old node was 
+		split.isLeaf = y.isLeaf;
+		// we since y is full, the new node must have t-1 keys
 		split.numKeys = degree - 1;
+		// copy over the "right half" of y into split
 		for (int j = 0; j < degree - 1; j++) {
 			split.keys[j] = y.keys[degree + j];
+			y.keys[degree + j] = null;
 		}
+		// copy over the child pointers if y isn't a leaf
 		if (!y.isLeaf) { // If not in a leaf go through the tree.
 			for (int j = 0; j < degree; j++) {
 				split.childPointers[j] = y.childPointers[degree + j];
+				y.childPointers[degree + j] = (Long) null;
 			}
 		}
+		// having "chopped off" the right half of y, it now has t-1 keys
 		y.numKeys = degree - 1;
+		// shift everything in x over from i+1, then stick the new child in x;
+		// y will half its former self as ci[x] and split will 
+		// be the other half as ci+1[x]
 		for (int j = x.numKeys; j > i; j--) {
-
 			x.childPointers[j + 1] = x.childPointers[j];
 		}
+		
 		x.childPointers[i + 1] = split.current;
+		// the keys have to be shifted over as well...
 		for (int j = x.numKeys - 1; j >= i; j--) {
 			x.keys[j + 1] = x.keys[j];
 		}
+		// ...to accomodate the new key we're bringing in from the middle 
+		// of y (if you're wondering, since (t-1) + (t-1) = 2t-2, where 
+		// the other key went, its coming into x)
 		x.keys[i] = y.keys[degree - 1];
 		x.numKeys++;
+		
+		// write everything out to disk
 		diskWrite(x);
 		diskWrite(y);
 		diskWrite(split);
