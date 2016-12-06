@@ -7,7 +7,7 @@ import java.util.Stack;
 
 public class BTree<T> {
 	private static int degree;
-	BTreeNode<T> root, r, s, splitNode, child;
+	BTreeNode<T> root, r, s, split, child;
 	int keyLength, nodeCount, maxKeys;
 	File file;
 	RandomAccessFile raf;
@@ -122,17 +122,17 @@ public class BTree<T> {
 
 	private void splitNode(BTreeNode<T> x, int i, BTreeNode<T> y) throws IOException {
 
-		splitNode = new BTreeNode<T>();
+		split = new BTreeNode<T>();
 		nodeCount++; // We need to keep track of the amount of nodes.
-		splitNode.current = nodeCount;
-		splitNode.isLeaf = y.isLeaf; // Set our isLeaf flag.
-		splitNode.numKeys = degree - 1;
+		split.current = nodeCount;
+		split.isLeaf = y.isLeaf; // Set our isLeaf flag.
+		split.numKeys = degree - 1;
 		for (int j = 0; j < degree - 1; j++) {
-			splitNode.keys[j] = y.keys[degree + j];
+			split.keys[j] = y.keys[degree + j];
 		}
 		if (!y.isLeaf) { // If not in a leaf go through the tree.
 			for (int j = 0; j < degree; j++) {
-				splitNode.childPointers[j] = y.childPointers[degree + j];
+				split.childPointers[j] = y.childPointers[degree + j];
 			}
 		}
 		y.numKeys = degree - 1;
@@ -140,7 +140,7 @@ public class BTree<T> {
 
 			x.childPointers[j + 1] = x.childPointers[j];
 		}
-		x.childPointers[i + 1] = splitNode.current;
+		x.childPointers[i + 1] = split.current;
 		for (int j = x.numKeys - 1; j >= i; j--) {
 			x.keys[j + 1] = x.keys[j];
 		}
@@ -148,7 +148,7 @@ public class BTree<T> {
 		x.numKeys++;
 		diskWrite(x);
 		diskWrite(y);
-		diskWrite(splitNode);
+		diskWrite(split);
 
 	}
 
