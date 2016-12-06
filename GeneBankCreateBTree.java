@@ -6,7 +6,7 @@ import java.util.Scanner;
 public class GeneBankCreateBTree {
 
 	public static void main(String[] args) {
-		Scanner scan = null;
+		Scanner scan;
 		int debugLevel = -1, cacheSize, degree = -1, sequenceLength = 0;
 		boolean useCache = false;
 		boolean useDebug = false;
@@ -17,7 +17,9 @@ public class GeneBankCreateBTree {
 		String startflag = "ORIGIN";
 		String endflag = "//";
 		String DELIMITER = "[actgn/]*";
-		File file = null;
+		File file; 
+		File bTreeFile;
+		boolean notDone = false;
 		
 
 		// Check arg length
@@ -50,13 +52,12 @@ public class GeneBankCreateBTree {
 				System.exit(0);
 			}
 			// Check file
-			if (args[2].contains(".gbk")) {
-				file = new File(args[2]);
-				scan = new Scanner(file);
-			} else {
+			if (!args[2].contains(".gbk")) {
 				printUsage();
 				System.exit(0);
-			}
+			} 
+			file = new File(args[2]); 
+			
 			// Check sequence length
 			if (Integer.parseInt(args[3]) > 1 || Integer.parseInt(args[3]) < 31) {
 				sequenceLength = Integer.parseInt(args[3]);
@@ -88,76 +89,106 @@ public class GeneBankCreateBTree {
 				}
 			}
 
-			BTree tree = new BTree(degree, sequenceLength, file);
+			String filename = (file.getName() + ".btree.data." + sequenceLength + "." + degree);
+			bTreeFile = new File(filename);
+			BTree<TreeObject> tree = new BTree<TreeObject>(degree, bTreeFile); 
+			scan = new Scanner(file);	
+			nextLine = scan.nextLine();
 
-			while (!nextLine.contains(endflag)) {
+			while(true) {  // Continue until endflag is found -- just after DNA sequences.
+				
 
-				while (!nextLine.contains(startflag)) {
+				while(!notDone) {
 					nextLine = scan.nextLine();
+					if (nextLine.contains(startflag)) {
+						nextLine = scan.nextLine().toLowerCase().trim();
+						notDone = true;
+						break;
+					}
 				}
+				
+				
 
+				// Apply delimiter to the scanner.
 				scan.useDelimiter(DELIMITER);
-
-				int start = 0;
-				line = nextLine;
-				nextLine = scan.nextLine().toLowerCase();
-
-				// Read sequence.
+				
+				int start = 0;		// reset cursor
+				line = nextLine;	// advance line
+				nextLine = scan.nextLine().toLowerCase().trim();	// grab next line
+		
+				
+				// Collect DNA sequence.
 				while (start < line.length()) {
-
+				
 					int end = start + sequenceLength;
-
-					if (end < line.length()) {
-
+					
+					if (end < line.length()) {	// If the sequence to be collected fits on the current line...
+					
 						for (int i = start; i < end; i++) {
-							sequence2 += line.charAt(i);
+							sequence2 += line.charAt(i);	
 						}
-
-					} else {
-
+						
+					} else {	// else, we have to wrap to the next line to finish the sequence.
+						
+						if (nextLine.contains(endflag)) {
+							notDone = false;
+							break;
+						}
+						
 						end = sequenceLength - (nextLine.length() - start);
-
+						
 						for (int i = start; i < line.length(); i++) {
-							sequence2 += line.charAt(i);
+							sequence2 += line.charAt(i);	
 						}
-
+						
 						for (int i = 0; i < end; i++) {
 							sequence2 += nextLine.charAt(i);
 						}
 					}
-
-					// Converts to binary.
-					if (sequence2.length() == sequenceLength) {
+					
+					// Convert the collected DNA sequence to binary.
+					if (sequence2.length() == sequenceLength) {	// Discard any sequences != k in length.
 						for (int i = 0; i < sequence2.length(); i++) {
-							char c = sequence2.charAt(i);
-
+	 						char c = sequence2.charAt(i);
+					
 							switch (c) {
-							case ('a'):
-								sequence1 += "00";
-							case ('c'):
-								sequence1 += "01";
-							case ('g'):
-								sequence1 += "10";
-							case ('t'):
-								sequence1 += "11";
-							case ('n'):
-								sequence1 = "";
+								case ('a'): sequence1 += "00";
+											break;
+								case ('c'): sequence1 += "01";
+											break;
+								case ('g'): sequence1 += "10";
+											break;
+								case ('t'): sequence1 += "11";	
+											break;
+								case ('n'): sequence1 = "";	// Unreadable DNA, discard entire sequence.
+											break;
+							}		
+						}
+					
+						// Add the binary sequence to the tree, ignore sequences of inappropriate length.
+						if (sequence1.length() == sequenceLength * 2) {
+							TreeObject obj = new TreeObject(Long.parseLong(sequence1));
+							try {
+								tree.InsertNode(obj);
+								
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								System.err.println("fail");
+								e.printStackTrace();
 							}
 						}
-
-						// Add the binary sequence to the tree.
-						if (sequence1.length() == sequenceLength * 2) {
-							TreeObject o = new TreeObject(Long.parseLong(sequence1));
-							tree.InsertNode(o);
-						}
 					}
-
-					start++;
-					sequence2 = "";
-					sequence1 = "";
+				
+					start++;	// advance cursor
+					sequence1 = ""; 	
+					sequence2 = "";	// clear sequences	
 				}
+				
+				if (!notDone) {
+					break;
+				}
+				
 			}
-
 			scan.close();
 
 			if (useDebug) {
@@ -175,13 +206,15 @@ public class GeneBankCreateBTree {
 		} catch (FileNotFoundException e) {
 			printUsage();
 		} catch (Exception e) {
+			e.printStackTrace();
 			printUsage();
 		}
 	}
 
 	private static void printUsage() {
-		System.err.println("GeneBankCreateBTree <0/1(no/with Cache)> <degree 1<=k<=31> <gbk file> "
-				+ "<sequence length>" + "[<cache size>] [<debug level>]" + "[<debug level>]\n");
+		System.err.println("GeneBankCreateBTree <0/1(no/with Cache)> <degree> <gbk file> "
+				+ "<sequence length> 1<=k<=31>" + "[<cache size>] [<debug level>]" + "[<debug level>]\n");
 	}
 }
+
 
