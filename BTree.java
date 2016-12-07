@@ -6,10 +6,9 @@ import java.io.RandomAccessFile;
 import java.util.Stack;
 
 public class BTree<T> {
-	public static int degree;
-	BTreeNode<T> root, s, r, z, child;
-	int keyLength, nodeCount, maxKeys;
-	File file;
+	private int degree;
+	private BTreeNode<T> root, s, r, z;
+	private int nodeCount, maxKeys;
 	RandomAccessFile raf;
 	long nodeSize;
 	boolean useCache = false;
@@ -18,12 +17,11 @@ public class BTree<T> {
 	int sizeOfCache = 0;
 
 	public BTree(int degree, File file) throws IOException {
-		this.degree = degree;
 		
-		this.keyLength = keyLength;
+		
+		this.degree = degree;
 		raf = new RandomAccessFile(file, "rw");
 		maxKeys = 2 * degree - 1;
-		this.file = file;
 		int cacheSize = 1000;
 		// Cache = new Cache(1000);
 		sizeOfCache = cacheSize;
@@ -233,6 +231,18 @@ public class BTree<T> {
 
 		return node;
 	}
+	
+	private long nodeSize() {
+		int keyObjectSize = Long.BYTES + Integer.BYTES;
+		int isLeafSize = 1;
+		int pointer = Integer.BYTES;
+		int numPointers = 2 * degree;
+		int numKeys = 2 * degree - 1;
+		int current = Integer.BYTES;
+
+		int size = keyObjectSize * numKeys + pointer * numPointers + isLeafSize + current;
+		return size;
+	}
 
 	public void debugPrintIOT(File travFile) throws IOException {
 		FileWriter fWriter = new FileWriter(travFile);
@@ -317,18 +327,6 @@ public class BTree<T> {
 	 * diskRead(x.); } //************************** Need to retrun node array
 	 * data return search(x.); } }
 	 */
-
-	private long nodeSize() {
-		int keyObjectSize = Long.BYTES + Integer.BYTES;
-		int isLeafSize = 1;
-		int pointer = Integer.BYTES;
-		int numPointers = 2 * degree;
-		int numKeys = 2 * degree - 1;
-		int current = Integer.BYTES;
-
-		int size = keyObjectSize * numKeys + pointer * numPointers + isLeafSize + current;
-		return size;
-	}
 
 	@SuppressWarnings("hiding")
 	private class BTreeNode<T> {
