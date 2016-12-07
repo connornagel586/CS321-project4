@@ -171,7 +171,7 @@ public class GeneBankCreateBTree {
 						if (sequence1.length() == sequenceLength * 2) {
 							TreeObject o = new TreeObject(Long.parseLong(sequence1));
 							try {
-								tree.InsertNode(o);
+								tree.insertNode(o);
 
 							} catch (IOException e) {
 								e.printStackTrace();
