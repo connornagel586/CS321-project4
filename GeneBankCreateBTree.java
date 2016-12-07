@@ -196,7 +196,8 @@ public class GeneBankCreateBTree {
 					// do some stuff
 				}
 				if (debugLevel == 1) {
-					// do some stuff
+					File dump = new File("dump");
+					tree.debugPrintIOT(dump);
 				}
 
 			}
