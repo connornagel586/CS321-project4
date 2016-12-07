@@ -6,8 +6,8 @@ import java.io.RandomAccessFile;
 import java.util.Stack;
 
 public class BTree<T> {
-	private static int degree;
-	BTreeNode<T> root, r, s, split, child;
+	public static int degree;
+	BTreeNode<T> root, s, r, z, child;
 	int keyLength, nodeCount, maxKeys;
 	File file;
 	RandomAccessFile raf;
@@ -18,10 +18,8 @@ public class BTree<T> {
 	int sizeOfCache = 0;
 
 	public BTree(int degree, File file) throws IOException {
-		root = new BTreeNode<T>();
-		root.isLeaf = true;
-		root.numKeys = 0;
-		root.current = 1;
+		this.degree = degree;
+		
 		this.keyLength = keyLength;
 		raf = new RandomAccessFile(file, "rw");
 		maxKeys = 2 * degree - 1;
@@ -34,6 +32,10 @@ public class BTree<T> {
 			this.Cache = new Cache<BTreeNode>(sizeOfCache);
 		}
 		raf.seek(16);
+		root = new BTreeNode<T>();
+		root.isLeaf = true;
+		root.numKeys = 0;
+		root.current = 1;
 	}
 
 	public void insertNode(TreeObject o) throws IOException {
@@ -58,6 +60,7 @@ public class BTree<T> {
 		int i = x.numKeys - 1;
 		if (x.isLeaf) {
 			// find child where new key belongs:
+			
 			while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
 				i--;
 			}
@@ -122,23 +125,23 @@ public class BTree<T> {
 
 	private void splitNode(BTreeNode<T> x, int i, BTreeNode<T> y) throws IOException {
 
-		split = new BTreeNode<T>();
+		z = new BTreeNode<T>();
 		nodeCount++; // We need to keep track of the amount of nodes.
-		split.current = nodeCount;
+		z.current = nodeCount;
 		// new node is a leaf if old node was 
-		split.isLeaf = y.isLeaf;
+		z.isLeaf = y.isLeaf;
 		// we since y is full, the new node must have t-1 keys
-		split.numKeys = degree - 1;
+		z.numKeys = degree - 1;
 		// copy over the "right half" of y into split
 		for (int j = 0; j < degree - 1; j++) {
-			split.keys[j] = y.keys[degree + j];
+			z.keys[j] = y.keys[degree + j];
 			y.keys[degree + j] = null;
 		}
 		// copy over the child pointers if y isn't a leaf
 		if (!y.isLeaf) { // If not in a leaf go through the tree.
 			for (int j = 0; j < degree; j++) {
-				split.childPointers[j] = y.childPointers[degree + j];
-				y.childPointers[degree + j] = (Long) null;
+				z.childPointers[j] = y.childPointers[degree + j];
+				y.childPointers[degree + j] = 0;
 			}
 		}
 		// having "chopped off" the right half of y, it now has t-1 keys
@@ -150,7 +153,7 @@ public class BTree<T> {
 			x.childPointers[j + 1] = x.childPointers[j];
 		}
 		
-		x.childPointers[i + 1] = split.current;
+		x.childPointers[i + 1] = z.current;
 		// the keys have to be shifted over as well...
 		for (int j = x.numKeys - 1; j >= i; j--) {
 			x.keys[j + 1] = x.keys[j];
@@ -158,13 +161,13 @@ public class BTree<T> {
 		// ...to accomodate the new key we're bringing in from the middle 
 		// of y (if you're wondering, since (t-1) + (t-1) = 2t-2, where 
 		// the other key went, its coming into x)
-		x.keys[i] = y.keys[degree - 1];
+		x.keys[0] = y.keys[degree - 1];
 		x.numKeys++;
 		
 		// write everything out to disk
-		diskWrite(x);
 		diskWrite(y);
-		diskWrite(split);
+		diskWrite(z);
+		diskWrite(x);
 
 	}
 
@@ -180,14 +183,18 @@ public class BTree<T> {
 		raf.writeInt(degree);
 
 		// Writing the KeyObject
-		for (int i = 0; i < 2 * degree - 1; i++) {
-			raf.writeLong(x.keys[i].getKey());
-			raf.writeInt(x.keys[i].getFreq());
-		}
+		for (int i = 0; i < x.numKeys; i++) {
+			if(x.keys[i] != null){
+				raf.writeLong(x.keys[i].getKey());
+				raf.writeInt(x.keys[i].getFreq());
+			}
+			}
 
 		// Writing the pointers
 		for (int i = 0; i < 2 * degree; i++) {
-			raf.writeLong(x.childPointers[i]);
+			if(x.childPointers[i] != 0){
+				raf.writeLong(x.childPointers[i]);
+			}
 		}
 		
 		//Writing Meta Data
