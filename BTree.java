@@ -237,7 +237,6 @@ public class BTree<T> {
 
 	private long nodeSize() {
 		int keyObjectSize = Long.BYTES + Integer.BYTES;
-		int metaData = 1 + 12;
 		int pointer = Integer.BYTES;
 		int numPointers = 2 * degree;
 		int numKeys = 2 * degree - 1;
@@ -245,7 +244,7 @@ public class BTree<T> {
 		int degreeSize = Integer.BYTES;
 
 		int size = (keyObjectSize * numKeys) + (pointer * numPointers)
-				+ metaData + current + degreeSize;
+				 + current + degreeSize;
 		return size;
 	}
 
