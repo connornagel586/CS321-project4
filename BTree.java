@@ -54,6 +54,8 @@ public class BTree<T> {
 	}
 
 	public void insertNodeNonFull(BTreeNode<T> x, TreeObject o) throws IOException {
+		//Not working check out the pic I sent in group chat to see if that might work better.
+		
 		int i = x.numKeys - 1;
 		if (x.isLeaf) {
 			// shift everything over to the "right" up to the
