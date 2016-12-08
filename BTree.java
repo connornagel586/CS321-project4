@@ -53,10 +53,33 @@ public class BTree<T> {
 			insertNodeNonFull(r, o);
 	}
 
-	public void insertNodeNonFull(BTreeNode<T> x, TreeObject o)
-			throws IOException {
-
+	public void insertNodeNonFull(BTreeNode<T> x, TreeObject o) throws IOException {
 		int i = x.numKeys - 1;
+		if (x.isLeaf) {
+			// shift everything over to the "right" up to the
+			// point where the new key k should go
+			while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
+				x.keys[i + 1] = x.keys[i];
+			}
+			x.setKey(o, i + 1);
+			x.numKeys++;
+		}else{
+			while (i >= 1 && o.compareTo(x.keys[i]) < 0) {
+				i--;
+			}
+			i++;
+			DiskRead(x.childPointers[i]);
+			if (child.numKeys == maxKeys) {
+				splitNode(x, i, child);
+				if (o.compareTo(x.keys[i]) > 0) {
+					i++;
+				}
+			}
+			insertNodeNonFull(child, o);
+		}
+	}
+	//Old code for insertNodeNonFull
+	/*int i = x.numKeys - 1;
 		if (x.isLeaf) {
 			// find child where new key belongs:
 
@@ -83,10 +106,10 @@ public class BTree<T> {
 		else {
 			if (useCache) {
 
-				/*
+				
 				 * if (Cache.containsObject(x.current)) {
 				 * Cache.removeObject(x.current); } Cache.addObject(x); }
-				 */
+				 
 			} else {
 				while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
 					i--;
@@ -97,19 +120,19 @@ public class BTree<T> {
 				}
 				// For the Cache
 				if (useCache) {
-					/*
+					
 					 * if (Cache.containsObject(x.current)) {
 					 * Cache.removeObject(x.current); } Cache.addObject(x);
-					 */} else {
+					 } else {
 					i++;
 					// For the Cache
 					if (useCache) {
-						/*
+						
 						 * if (Cache.containsObject(x.childPointers[i])) { x =
 						 * (BTree<T>.BTreeNode<T>)
 						 * Cache.removeObject(x.childPointers[i]); } else {
 						 * DiskRead(x.childPointers[i]); }
-						 */
+						 
 					} else {
 						child = DiskRead(x.childPointers[i]);
 					}
@@ -125,7 +148,7 @@ public class BTree<T> {
 			}
 		}
 
-	}
+	}*/
 
 	private void splitNode(BTreeNode<T> x, int i, BTreeNode<T> y)
 			throws IOException {
