@@ -54,31 +54,34 @@ public class BTree<T> {
 	}
 
 	public void insertNodeNonFull(BTreeNode<T> x, TreeObject o) throws IOException {
-		//Not working check out the pic I sent in group chat to see if that might work better.
+		// I think this is working please double check.
+		// Also look at the pic I sent. The old code is below and the commented out code is the 
+		//book code.
 		
 		int i = x.numKeys - 1;
-		if (x.isLeaf) {
+	//	if (x.isLeaf) {
 			// shift everything over to the "right" up to the
 			// point where the new key k should go
 			while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
 				x.keys[i + 1] = x.keys[i];
+				i--;
 			}
 			x.keys[i + 1] = o;
 			x.numKeys++;
-		}else{
-			while (i >= 1 && o.compareTo(x.keys[i]) < 0) {
-				i--;
-			}
-			i++;
-			DiskRead(x.childPointers[i]);
-			if (child.numKeys == maxKeys) {
-				splitNode(x, i, child);
-				if (o.compareTo(x.keys[i]) > 0) {
-					i++;
-				}
-			}
-			insertNodeNonFull(child, o);
-		}
+	//	}else{
+	//		while (i >= 1 && o.compareTo(x.keys[i]) < 0) {
+	//			i--;
+	//		}
+	//		i++;
+	//		DiskRead(x.childPointers[i]);
+	//		if (child.numKeys == maxKeys) {
+	//			splitNode(x, i, child);
+	//			if (o.compareTo(x.keys[i]) > 0) {
+	//				i++;
+	//			}
+	//		}
+	//		insertNodeNonFull(child, o);
+	//	}
 	}
 	//Old code for insertNodeNonFull
 	/*int i = x.numKeys - 1;
