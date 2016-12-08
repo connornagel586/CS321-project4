@@ -61,7 +61,7 @@ public class BTree<T> {
 			while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
 				x.keys[i + 1] = x.keys[i];
 			}
-			x.setKey(o, i + 1);
+			x.keys[i + 1] = o;
 			x.numKeys++;
 		}else{
 			while (i >= 1 && o.compareTo(x.keys[i]) < 0) {
