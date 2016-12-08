@@ -180,13 +180,15 @@ public class BTree<T> {
 
 	private int diskWrite(BTreeNode<T> x) throws IOException {
 
-		raf.seek(16 + x.current * nodeSize());
+		raf.seek(0);
 
 		// Writing Meta Data
 		raf.writeInt(degree);
 		raf.writeBoolean(x.isLeaf);
 		raf.writeInt(x.numKeys);
-		raf.writeInt(x.current);
+		raf.writeInt(x.current); //Size of meta data 13.
+		
+		raf.seek(13 + x.current * nodeSize());
 
 		// Writing the KeyObject
 		for (int i = 0; i < x.numKeys; i++) {
@@ -205,7 +207,7 @@ public class BTree<T> {
 
 	private BTreeNode<T> DiskRead(long offset) throws IOException {
 
-		raf.seek(16 + offset * nodeSize());
+		raf.seek(0);
 
 		BTreeNode<T> node = new BTreeNode<T>();
 
@@ -213,7 +215,9 @@ public class BTree<T> {
 		degree = raf.readInt();
 		node.isLeaf = raf.readBoolean();
 		node.numKeys = raf.readInt();
-		node.current = raf.readInt();
+		node.current = raf.readInt();//Size of meta data 13.
+		
+		raf.seek(13 + offset * nodeSize());
 
 		// Reading the KeyObject
 		for (int i = 0; i < node.numKeys; i++) {
