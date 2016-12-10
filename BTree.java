@@ -275,14 +275,18 @@ public class BTree<T> {
 				 + current + degreeSize;
 		return size;
 	}
-
-	public void debugPrintIOT(BTreeNode<T> x) throws IOException {
+	
+	private Object traverseTree(BTreeNode<T> x) throws IOException {
 		
-		for (int i = 0; i < x.childPointers.length; ++i) {;
-		debugPrintIOT(DiskRead(x.childPointers[i]));
-			
+		for (int i = 0; i < x.childPointers.length; i++) {;
+		return traverseTree(DiskRead(x.childPointers[i]));	
 		}
-		debugPrintIOT(DiskRead(x.childPointers[x.childPointers.length - 1]));
+		return traverseTree(DiskRead(x.childPointers[x.childPointers.length - 1]));
+	}
+	
+	private File printDebugInfo(File travFile){
+		//Call the traversal and print to the travFile all the debug stuff.
+		return travFile;
 	}
 
 	/**
