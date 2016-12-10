@@ -40,14 +40,13 @@ public class BTree<T> {
 		if (r.isFull()) {
 			// uh-oh, the root is full, we have to split it
 			s = new BTreeNode<T>();
-			s.current = nodeCount;
 			nodeCount++;
-			r.current = nodeCount;
+			s.current = nodeCount;
 			root = s; // new root node
 			s.isLeaf = false; // will have some children
 			s.numKeys = 0; // for now
 			s.childPointers[0] = r.current; // child is the old root node
-			splitNode(s, 0, r); // r is split
+			splitNode(s, 0); // r is split
 			insertNodeNonFull(s, o); // s is clearly not full
 		} else
 			insertNodeNonFull(r, o);
@@ -59,106 +58,38 @@ public class BTree<T> {
 		//book code.
 		
 		int i = x.numKeys - 1;
-	//	if (x.isLeaf) {
-			// shift everything over to the "right" up to the
-			// point where the new key k should go
+		if (x.isLeaf) {
+			 //shift everything over to the "right" up to the
+			 //point where the new key k should go
 			while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
 				x.keys[i + 1] = x.keys[i];
 				i--;
 			}
 			x.keys[i + 1] = o;
 			x.numKeys++;
-	//	}else{
-	//		while (i >= 1 && o.compareTo(x.keys[i]) < 0) {
-	//			i--;
-	//		}
-	//		i++;
-	//		DiskRead(x.childPointers[i]);
-	//		if (child.numKeys == maxKeys) {
-	//			splitNode(x, i, child);
-	//			if (o.compareTo(x.keys[i]) > 0) {
-	//				i++;
-	//			}
-	//		}
-	//		insertNodeNonFull(child, o);
-	//	}
-	}
-	//Old code for insertNodeNonFull
-	/*int i = x.numKeys - 1;
-		if (x.isLeaf) {
-			// find child where new key belongs:
-
+			diskWrite(x);
+		}else{
 			while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
 				i--;
 			}
-			if (i != -1 && o.compareTo(x.keys[i]) == 0) {
-				x.keys[i].increaseFrequency();
-			} else {
-				i = x.numKeys - 1;
-				// shift everything over to the "right" up to the
-				// point where the new key k should go
-				while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
-					x.keys[i + 1] = x.keys[i];
-					i--;
-				}
-				// stick k in its right place and increase numKeys
-				x.setKey(o, i + 1);
-				x.numKeys++;
-			}
-			diskWrite(x);
-		}
-		// For the Cache
-		else {
-			if (useCache) {
-
-				
-				 * if (Cache.containsObject(x.current)) {
-				 * Cache.removeObject(x.current); } Cache.addObject(x); }
-				 
-			} else {
-				while (i >= 0 && o.compareTo(x.keys[i]) < 0) {
-					i--;
-				}
-				if (i != -1 && o.compareTo(x.keys[i]) == 0) {
-					x.keys[i].increaseFrequency();
-					diskWrite(x);
-				}
-				// For the Cache
-				if (useCache) {
-					
-					 * if (Cache.containsObject(x.current)) {
-					 * Cache.removeObject(x.current); } Cache.addObject(x);
-					 } else {
+			i++;
+			BTreeNode<T> child= DiskRead(x.childPointers[i]);
+			if (child.numKeys == maxKeys) {
+				splitNode(x, i);
+				if (o.compareTo(x.keys[i]) > 0) {
 					i++;
-					// For the Cache
-					if (useCache) {
-						
-						 * if (Cache.containsObject(x.childPointers[i])) { x =
-						 * (BTree<T>.BTreeNode<T>)
-						 * Cache.removeObject(x.childPointers[i]); } else {
-						 * DiskRead(x.childPointers[i]); }
-						 
-					} else {
-						child = DiskRead(x.childPointers[i]);
-					}
-					if (child.numKeys == maxKeys) {
-						splitNode(x, i, child);
-						if (o.compareTo(x.keys[i]) > 0) {
-							i++;
-						}
-					}
-					insertNodeNonFull(child, o);
-
 				}
 			}
+			insertNodeNonFull(DiskRead(x.childPointers[i]), o);
 		}
+	}
 
-	}*/
 
-	private void splitNode(BTreeNode<T> x, int i, BTreeNode<T> y)
+	private void splitNode(BTreeNode<T> x, int i)
 			throws IOException {
 
 		z = new BTreeNode<T>();
+		BTreeNode<T> y = DiskRead(x.childPointers[i]);
 		
 		nodeCount++; // We need to keep track of the amount of nodes.
 		z.current = nodeCount;
@@ -170,12 +101,13 @@ public class BTree<T> {
 		for (int j = 0; j < degree - 1; j++) {
 			z.keys[j] = y.keys[degree + j];
 			y.keys[degree + j] = null;
+	
 		}
 		// copy over the child pointers if y isn't a leaf
 		if (!y.isLeaf) { // If not in a leaf go through the tree.
 			for (int j = 0; j < degree; j++) {
 				z.childPointers[j] = y.childPointers[degree + j];
-				y.childPointers[degree + j] = 0;
+				y.childPointers[degree + j] = -1;
 			}
 		}
 		// having "chopped off" the right half of y, it now has t-1 keys
@@ -195,8 +127,9 @@ public class BTree<T> {
 		// ...to accomodate the new key we're bringing in from the middle
 		// of y (if you're wondering, since (t-1) + (t-1) = 2t-2, where
 		// the other key went, its coming into x)
-		x.keys[0] = y.keys[degree - 1];
+		x.keys[i] = y.keys[degree - 1];
 		y.keys[degree - 1] = null;
+		
 		x.numKeys++;
 
 		// write everything out to disk
@@ -212,14 +145,18 @@ public class BTree<T> {
 
 		// Writing Meta Data
 		raf.writeInt(degree);
-		raf.writeBoolean(x.isLeaf);
-		raf.writeInt(x.numKeys);
-		raf.writeInt(x.current); //Size of meta data 13.
+		raf.writeInt(x.current);
+		 //Size of meta data 13.
 		
 		raf.seek(13 + x.current * nodeSize());
+		
+		raf.writeBoolean(x.isLeaf);
+		raf.writeInt(x.numKeys);
+		raf.writeInt(x.current);
 
 		// Writing the KeyObject
 		for (int i = 0; i < x.numKeys; i++) {
+			
 			raf.writeLong(x.keys[i].getKey());
 			raf.writeInt(x.keys[i].getFreq());
 		}
@@ -241,12 +178,14 @@ public class BTree<T> {
 
 		// Reading the degree from the file.
 		degree = raf.readInt();
+		
+		
+		raf.seek(13 + offset * nodeSize());
+
 		node.isLeaf = raf.readBoolean();
 		node.numKeys = raf.readInt();
 		node.current = raf.readInt();//Size of meta data 13.
 		
-		raf.seek(13 + offset * nodeSize());
-
 		// Reading the KeyObject
 		for (int i = 0; i < node.numKeys; i++) {
 			node.keys[i] = new TreeObject(raf.readLong());
@@ -272,7 +211,7 @@ public class BTree<T> {
 		int degreeSize = Integer.BYTES;
 
 		int size = (keyObjectSize * numKeys) + (pointer * numPointers)
-				 + current + degreeSize;
+				 + current + 4 + 1;
 		return size;
 	}
 
@@ -376,12 +315,18 @@ public class BTree<T> {
 		BTreeNode() {
 			keys = new TreeObject[maxKeys];
 			childPointers = new int[2 * degree];
+			for(int i = 0; i < 2 * degree; i++){
+				childPointers[i] = -1;
+			}
 			numKeys = 0;
 		}
 
 		BTreeNode(int i) {
 			keys = new TreeObject[2 * i - 1];
 			childPointers = new int[2 * i];
+			for(int j = 0; j < 2 * degree; j++){
+				childPointers[j] = -1;
+			}
 			numKeys = 0;
 		}
 
