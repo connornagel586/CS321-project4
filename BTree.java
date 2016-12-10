@@ -232,21 +232,22 @@ public class BTree<T> {
 	 * B-TREE-SEARCH(x, k) method from book
 	 * @return returns a TreeObject
 	 */
-	public TreeObject bTreeSearch(BTreeNode<T> x, TreeObject o) {
-		
-		int i = 0;
-		while (i < x.numKeys && o.compareTo(x.keys[i]) > 0) {
-			i++;
-		}
-		if (i < x.numKeys && o.compareTo(x.keys[i]) == 0) {
-			return x.keys[i];
-		} else if (x.isLeaf) {	
-			
-			return null;
-				BTreeNode<T> child = DiskRead(x.childPointers[i]);
-			    return bTreeSearch(child, o);
-		}
-	}
+//	public TreeObject bTreeSearch(BTreeNode<T> x, TreeObject o) {
+//		
+//		int i = 0;
+//		while (i < x.numKeys && o.compareTo(x.keys[i]) > 0) {
+//			i++;
+//		}
+//		if (i < x.numKeys && o.compareTo(x.keys[i]) == 0) {
+//			return x.keys[i];
+//		} else if (x.isLeaf) {	
+//			return null;
+//		}
+//		else{
+//				BTreeNode<T> child = DiskRead(x.childPointers[i]);
+//			    return bTreeSearch(child, o);
+//		}}
+//	}
 	@SuppressWarnings("hiding")
 	private class BTreeNode<T> {
 
