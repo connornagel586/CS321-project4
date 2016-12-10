@@ -304,11 +304,44 @@ public class BTree<T> {
 		} else if (x.isLeaf) {	
 			
 			return null;
-				BTreeNode<T> child = DiskRead(x.childPointers[i]);
-			    return bTreeSearch(child, o);
+			BTreeNode<T> child = DiskRead(x.childPointers[i]);
+		}else {
+				if(useCache){
+					readCache(x.childPointers[i]);
+				}else{
+					DiskRead(x.childPointers[i]);
+				}
+				return bTreeSearch(child,o);
+			}
 		}
+	
+	public BTreeNode<T> readCache(BTreeNode<T> x){
+		  if (Cache.removeObject(x)){
+		  		Cache.addObject(x);
+		  		
+		  }else{
+		  		x = DiskRead(x);
+			  	BTreeNode dump = Cache.addObject(x);
+		  		if (dump!=null){
+		  			diskWrite(dump);
+		  		}
+		  }
+		  return x;
+		
 	}
-	@SuppressWarnings("hiding")
+	
+	public void useCache(BTreeNode<T> x){
+
+	  if (Cache.removeObject(x)){
+	  		Cache.addObject(x);
+	  }else{
+	  		BTreeNode<T> dump = Cache.addObject(x);
+	  		if (dump!=null){
+	  			diskWrite(dump);
+	  		}
+	  }
+	 
+	}	@SuppressWarnings("hiding")
 	private class BTreeNode<T> {
 
 		TreeObject[] keys;
