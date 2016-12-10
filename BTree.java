@@ -214,93 +214,39 @@ public class BTree<T> {
 				 + current + 4 + 1;
 		return size;
 	}
-
-	public void debugPrintIOT(File travFile) throws IOException {
-		FileWriter fWriter = new FileWriter(travFile);
-		BufferedWriter out = new BufferedWriter(fWriter);
-
-		Stack<Pair> stack = new Stack<Pair>();
-
-		stack.push(new Pair(0, 0));
-
-		while (!stack.isEmpty()) {
-			Pair pair = stack.pop();
-			BTreeNode<T> currNode = DiskRead(pair.getIndex());
-			int keyPosition = pair.getKeyPosition();
-
-			if (currNode.isLeaf) {
-				for (int i = 0; i < currNode.numKeys; i++) {
-					out.write(currNode.keys[i].getFreq() + "  "
-							+ currNode.keys[i].getKey());
-					out.newLine();
-				}
-
-				continue;
-			} else if (keyPosition > 0) {
-				out.write(currNode.keys[keyPosition - 1].getFreq() + "  "
-						+ currNode.keys[keyPosition - 1].getKey());
-				out.newLine();
-			}
-
-			if (keyPosition < currNode.numKeys)
-				stack.push(new Pair(pair.getIndex(), keyPosition + 1));
-
-			BTreeNode<T> childNode = DiskRead(currNode.childPointers[keyPosition]);
-
-			stack.push(new Pair(childNode.current, 0));
+	
+	private Object traverseTree(BTreeNode<T> x) throws IOException {
+		
+		for (int i = 0; i < x.childPointers.length; i++) {;
+		return traverseTree(DiskRead(x.childPointers[i]));	
 		}
-		out.close();
+		return traverseTree(DiskRead(x.childPointers[x.childPointers.length - 1]));
+	}
+	
+	private File printDebugInfo(File travFile){
+		//Call the traversal and print to the travFile all the debug stuff.
+		return travFile;
 	}
 
 	/**
-	 * 
-	 *
+	 * B-TREE-SEARCH(x, k) method from book
+	 * @return returns a TreeObject
 	 */
-	private class Pair {
-		private int i;
-		private int keyCurrentPos;
-
-		private Pair(int i, int keyCurrentPos) {
-			this.i = i;
-			this.keyCurrentPos = keyCurrentPos;
+	public TreeObject bTreeSearch(BTreeNode<T> x, TreeObject o) {
+		
+		int i = 0;
+		while (i < x.numKeys && o.compareTo(x.keys[i]) > 0) {
+			i++;
 		}
-
-		int getIndex() {
-			return i;
-		}
-
-		int getKeyPosition() {
-			return keyCurrentPos;
+		if (i < x.numKeys && o.compareTo(x.keys[i]) == 0) {
+			return x.keys[i];
+		} else if (x.isLeaf) {	
+			
+			return null;
+				BTreeNode<T> child = DiskRead(x.childPointers[i]);
+			    return bTreeSearch(child, o);
 		}
 	}
-
-	/*
-	 * public BTreeNode<T> readCache(BTreeNode<T> x){ if
-	 * (Cache.removeObject(x)){ Cache.addObject(x);
-	 * 
-	 * }else{ //************************** Need to pass node offsete x =
-	 * DiskRead(x.); BTreeNode<T> dump = Cache.addObject(x); if (dump!=null){
-	 * DiskWrite(dump); } } return x;
-	 * 
-	 * } public void useingCache(BTreeNode<T> x) { if (Cache.removeObject(x)) {
-	 * Cache.addObject(x); } else { BTreeNode<T> dump = Cache.addObject(x); if
-	 * (dump != null) { DiskWrite(dump); } } }
-	 * 
-	 * Search
-	 * 
-	 * public TreeObject search(BTreeNode<T> x) { TreeObject k = new
-	 * TreeObject(nodeSize); int i = 0; while (i < x.numKeys &&
-	 * (k).compareTo(x.keys[i]) > 0) { i++; } if (i < x.numKeys &&
-	 * k.compareTo(x.keys[i]) == 0) { x.keys[i].increaseFrequency();
-	 * 
-	 * if(useCache){ useingCache(x); }else{ DiskWrite(x); } return x.keys[i]; }
-	 * else if (x.current == 1) { return null; } else { if(useCache){
-	 * //************************** Need to Pass node array data readCache(x.);
-	 * }else{ //************************** Need to Pass node offeset
-	 * diskRead(x.); } //************************** Need to retrun node array
-	 * data return search(x.); } }
-	 */
-
 	@SuppressWarnings("hiding")
 	private class BTreeNode<T> {
 
