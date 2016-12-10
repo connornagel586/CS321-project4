@@ -276,63 +276,13 @@ public class BTree<T> {
 		return size;
 	}
 
-	public void debugPrintIOT(File travFile) throws IOException {
-		FileWriter fWriter = new FileWriter(travFile);
-		BufferedWriter out = new BufferedWriter(fWriter);
-
-		Stack<Pair> stack = new Stack<Pair>();
-
-		stack.push(new Pair(0, 0));
-
-		while (!stack.isEmpty()) {
-			Pair pair = stack.pop();
-			BTreeNode<T> currNode = DiskRead(pair.getIndex());
-			int keyPosition = pair.getKeyPosition();
-
-			if (currNode.isLeaf) {
-				for (int i = 0; i < currNode.numKeys; i++) {
-					out.write(currNode.keys[i].getFreq() + "  "
-							+ currNode.keys[i].getKey());
-					out.newLine();
-				}
-
-				continue;
-			} else if (keyPosition > 0) {
-				out.write(currNode.keys[keyPosition - 1].getFreq() + "  "
-						+ currNode.keys[keyPosition - 1].getKey());
-				out.newLine();
-			}
-
-			if (keyPosition < currNode.numKeys)
-				stack.push(new Pair(pair.getIndex(), keyPosition + 1));
-
-			BTreeNode<T> childNode = DiskRead(currNode.childPointers[keyPosition]);
-
-			stack.push(new Pair(childNode.current, 0));
+	public void debugPrintIOT(BTreeNode<T> x) throws IOException {
+		
+		for (int i = 0; i < x.childPointers.length; ++i) {;
+		debugPrintIOT(DiskRead(x.childPointers[i]));
+			
 		}
-		out.close();
-	}
-
-	/**
-	 * 
-	 *
-	 */
-	private class Pair {
-		private int i;
-		private int keyCurrentPos;
-
-		private Pair(int i, int keyCurrentPos) {
-			this.i = i;
-			this.keyCurrentPos = keyCurrentPos;
-		}
-
-		int getIndex() {
-			return i;
-		}
-
-		int getKeyPosition() {
-			return keyCurrentPos;
-		}
+		debugPrintIOT(DiskRead(x.childPointers[x.childPointers.length - 1]));
 	}
 
 	/**
