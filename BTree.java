@@ -232,6 +232,7 @@ public class BTree<T> {
 	 * B-TREE-SEARCH(x, k) method from book
 	 * @return returns a TreeObject
 	 */
+<<<<<<< HEAD
 //	public TreeObject bTreeSearch(BTreeNode<T> x, TreeObject o) {
 //		
 //		int i = 0;
@@ -249,6 +250,57 @@ public class BTree<T> {
 //		}}
 //	}
 	@SuppressWarnings("hiding")
+=======
+	public TreeObject bTreeSearch(BTreeNode<T> x, TreeObject o) {
+		
+		int i = 0;
+		while (i < x.numKeys && o.compareTo(x.keys[i]) > 0) {
+			i++;
+		}
+		if (i < x.numKeys && o.compareTo(x.keys[i]) == 0) {
+			return x.keys[i];
+		} else if (x.isLeaf) {	
+			
+			return null;
+			BTreeNode<T> child = DiskRead(x.childPointers[i]);
+		}else {
+				if(useCache){
+					readCache(x.childPointers[i]);
+				}else{
+					DiskRead(x.childPointers[i]);
+				}
+				return bTreeSearch(child,o);
+			}
+		}
+	
+	public BTreeNode<T> readCache(BTreeNode<T> x){
+		  if (Cache.removeObject(x)){
+		  		Cache.addObject(x);
+		  		
+		  }else{
+		  		x = DiskRead(x);
+			  	BTreeNode dump = Cache.addObject(x);
+		  		if (dump!=null){
+		  			diskWrite(dump);
+		  		}
+		  }
+		  return x;
+		
+	}
+	
+	public void useCache(BTreeNode<T> x){
+
+	  if (Cache.removeObject(x)){
+	  		Cache.addObject(x);
+	  }else{
+	  		BTreeNode<T> dump = Cache.addObject(x);
+	  		if (dump!=null){
+	  			diskWrite(dump);
+	  		}
+	  }
+	 
+	}	@SuppressWarnings("hiding")
+>>>>>>> 3b4fc7f25cd76afe86d11b55e50296641f2dde19
 	private class BTreeNode<T> {
 
 		TreeObject[] keys;
