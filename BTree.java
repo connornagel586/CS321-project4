@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Stack;
 
-public class BTree<T> {
+public class BTree {
 	private int degree;
-	private BTreeNode<T> root, s, r, z, child;
+	private BTreeNode root, s, r, z, child;
 	private int nodeCount, maxKeys = 0;
 	RandomAccessFile raf;
 	long nodeSize;
@@ -29,7 +29,7 @@ public class BTree<T> {
 		// this.Cache = new Cache<BTreeNode>(sizeOfCache);
 		// }
 		raf.seek(0);
-		root = new BTreeNode<T>();
+		root = new BTreeNode();
 		root.isLeaf = true;
 		root.numKeys = 0;
 		root.current = 0;
@@ -39,7 +39,7 @@ public class BTree<T> {
 		r = root;
 		if (r.isFull()) {
 			// uh-oh, the root is full, we have to split it
-			s = new BTreeNode<T>();
+			s = new BTreeNode();
 			nodeCount++;
 			s.current = nodeCount;
 			root = s; // new root node
@@ -52,7 +52,7 @@ public class BTree<T> {
 			insertNodeNonFull(r, o);
 	}
 
-	public void insertNodeNonFull(BTreeNode<T> x, TreeObject o) throws IOException {
+	public void insertNodeNonFull(BTreeNode x, TreeObject o) throws IOException {
 		// I think this is working please double check.
 		// Also look at the pic I sent. The old code is below and the commented out code is the 
 		//book code.
@@ -73,7 +73,7 @@ public class BTree<T> {
 				i--;
 			}
 			i++;
-			BTreeNode<T> child= DiskRead(x.childPointers[i]);
+			BTreeNode child= DiskRead(x.childPointers[i]);
 			if (child.numKeys == maxKeys) {
 				splitNode(x, i);
 				if (o.compareTo(x.keys[i]) > 0) {
@@ -85,11 +85,11 @@ public class BTree<T> {
 	}
 
 
-	private void splitNode(BTreeNode<T> x, int i)
+	private void splitNode(BTreeNode x, int i)
 			throws IOException {
 
-		z = new BTreeNode<T>();
-		BTreeNode<T> y = DiskRead(x.childPointers[i]);
+		z = new BTreeNode();
+		BTreeNode y = DiskRead(x.childPointers[i]);
 		
 		nodeCount++; // We need to keep track of the amount of nodes.
 		z.current = nodeCount;
@@ -139,7 +139,7 @@ public class BTree<T> {
 
 	}
 
-	private int diskWrite(BTreeNode<T> x) throws IOException {
+	private int diskWrite(BTreeNode x) throws IOException {
 
 		raf.seek(0);
 
@@ -170,11 +170,11 @@ public class BTree<T> {
 		return x.current;
 	}
 
-	private BTreeNode<T> DiskRead(long offset) throws IOException {
+	private BTreeNode DiskRead(long offset) throws IOException {
 
 		raf.seek(0);
 
-		BTreeNode<T> node = new BTreeNode<T>();
+		BTreeNode node = new BTreeNode();
 
 		// Reading the degree from the file.
 		degree = raf.readInt();
@@ -215,7 +215,7 @@ public class BTree<T> {
 		return size;
 	}
 	
-	private Object traverseTree(BTreeNode<T> x) throws IOException {
+	private Object traverseTree(BTreeNode x) throws IOException {
 		
 		for (int i = 0; i < x.childPointers.length; i++) {;
 		return traverseTree(DiskRead(x.childPointers[i]));	
@@ -232,7 +232,7 @@ public class BTree<T> {
 	 * B-TREE-SEARCH(x, k) method from book
 	 * @return returns a TreeObject
 	 */
-//	public TreeObject bTreeSearch(BTreeNode<T> x, TreeObject o) {
+//	public TreeObject bTreeSearch(BTreeNode x, TreeObject o) {
 //		
 //		int i = 0;
 //		while (i < x.numKeys && o.compareTo(x.keys[i]) > 0) {
@@ -244,12 +244,14 @@ public class BTree<T> {
 //			return null;
 //		}
 //		else{
-//				BTreeNode<T> child = DiskRead(x.childPointers[i]);
+//				BTreeNode child = DiskRead(x.childPointers[i]);
 //			    return bTreeSearch(child, o);
 //		}}
 //	}
-
-	public TreeObject bTreeSearch(BTreeNode<T> x, TreeObject o) {
+	
+	
+/*	@SuppressWarnings("hiding")
+	public TreeObject bTreeSearch(BTreeNode x, TreeObject o) {
 		
 		int i = 0;
 		while (i < x.numKeys && o.compareTo(x.keys[i]) > 0) {
@@ -260,7 +262,7 @@ public class BTree<T> {
 		} else if (x.isLeaf) {	
 			
 			return null;
-			BTreeNode<T> child = DiskRead(x.childPointers[i]);
+			BTreeNode child = DiskRead(x.childPointers[i]);
 		}else {
 				if(useCache){
 					readCache(x.childPointers[i]);
@@ -271,7 +273,7 @@ public class BTree<T> {
 			}
 		}
 	
-	public BTreeNode<T> readCache(BTreeNode<T> x){
+	public BTreeNode readCache(BTreeNode x){
 		  if (Cache.removeObject(x)){
 		  		Cache.addObject(x);
 		  		
@@ -286,19 +288,21 @@ public class BTree<T> {
 		
 	}
 	
-	public void useCache(BTreeNode<T> x){
+	public void useCache(BTreeNode x){
 
 	  if (Cache.removeObject(x)){
 	  		Cache.addObject(x);
 	  }else{
-	  		BTreeNode<T> dump = Cache.addObject(x);
+	  		BTreeNode dump = Cache.addObject(x);
 	  		if (dump!=null){
 	  			diskWrite(dump);
 	  		}
 	  }
 	 
-	}
-	private class BTreeNode<T> {
+	}	
+	*/
+	@SuppressWarnings("hiding")
+	private class BTreeNode {
 
 		TreeObject[] keys;
 		public int current = -1; // Keeps track of were we are at.
@@ -344,3 +348,4 @@ public class BTree<T> {
 		}
 	}
 }
+
