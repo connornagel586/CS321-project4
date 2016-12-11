@@ -15,13 +15,14 @@ class KeyMaker {
 	String filename;
 	String line;
 	String key;
-	GeneBankCreateBTree create = new GeneBankCreateBTree();
+	GeneBankCreateBTree create;
 
-	KeyMaker(File f) throws IOException {
-		filename = (file.getName() + ".btree.data." + create.getSequenceLength() + "." + create.getDegree());
-		file = f;
-		tree = new BTree(create.getDegree(), file);
-		scan = new Scanner(file);
+	KeyMaker(GeneBankCreateBTree create) throws IOException {
+		this.create = create;
+		filename = (create.getFile().getName() + ".btree.data." + create.getSequenceLength() + "." + create.getDegree());
+		file = create.getFile();
+		tree = new BTree(create.getDegree(), create.getFile());
+		scan = new Scanner(create.getFile());
 
 	}
 
@@ -30,8 +31,10 @@ class KeyMaker {
 
 		case START: {
 			while (state == States.START) {
-
-				line = scan.nextLine();
+				while(scan.hasNextLine()){
+					line = scan.nextLine();
+				}
+				
 
 				if (line == null) {
 					state = States.END;
@@ -105,9 +108,13 @@ class KeyMaker {
 				break;
 			}
 		}
+		default:
+			return 0;
+			
 
 		}
-		return 0; // for now
+		 // for now
+		return 0;
 	}
 
 	private long encode(String seq) throws Exception {

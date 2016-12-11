@@ -13,7 +13,7 @@ public class GeneBankCreateBTree {
 	
 
 	public GeneBankCreateBTree()throws IOException {
-		genKey = new KeyMaker(file);
+	
 	}
 
 	
@@ -85,7 +85,7 @@ public class GeneBankCreateBTree {
 				if (create.degree == 0) {
 					create.degree = 127;
 				} else {
-					create.degree = Integer.parseInt(args[1]);
+					create.setDegree(Integer.parseInt(args[1]));
 				}
 			} else {
 				printUsage();
@@ -129,7 +129,7 @@ public class GeneBankCreateBTree {
 			
 		
 			BTree tree = new BTree(create.getDegree(), create.getFile());
-			KeyMaker genKey = new KeyMaker(create.getFile());
+			KeyMaker genKey = new KeyMaker(create);
 			TreeObject o = new TreeObject(genKey.getNextKey());
 			 try {
 					 tree.insertNode(o);
