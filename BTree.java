@@ -232,7 +232,6 @@ public class BTree<T> {
 	 * B-TREE-SEARCH(x, k) method from book
 	 * @return returns a TreeObject
 	 */
-<<<<<<< HEAD
 //	public TreeObject bTreeSearch(BTreeNode<T> x, TreeObject o) {
 //		
 //		int i = 0;
@@ -249,8 +248,7 @@ public class BTree<T> {
 //			    return bTreeSearch(child, o);
 //		}}
 //	}
-	@SuppressWarnings("hiding")
-=======
+
 	public TreeObject bTreeSearch(BTreeNode<T> x, TreeObject o) {
 		
 		int i = 0;
@@ -299,8 +297,7 @@ public class BTree<T> {
 	  		}
 	  }
 	 
-	}	@SuppressWarnings("hiding")
->>>>>>> 3b4fc7f25cd76afe86d11b55e50296641f2dde19
+	}
 	private class BTreeNode<T> {
 
 		TreeObject[] keys;
