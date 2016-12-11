@@ -3,6 +3,7 @@ import java.util.Scanner;
 import java.util.StringTokenizer;
 
 
+
 public class GeneBankSearch {
 	private static Scanner queryFile;
 	private static Scanner BTreeFile;
@@ -153,8 +154,10 @@ public class GeneBankSearch {
 		}
 		//Start timer
 		double startTime = System.nanoTime();
-		BTree check = new BTree(BTreeFilename);
-		check.buildTree(check.getRoot());
+		GeneBankCreateBTree g = new GeneBankCreateBTree();
+		BTree check = new BTree(g.getDegree(), g.getFile());
+		//BTree check = new BTree(BTreeFilename);
+		//check.buildTree();
 		
 		// read/parse/load bTree file
 		// Parsing query file
@@ -172,10 +175,12 @@ public class GeneBankSearch {
 			while (tokenizer.hasMoreTokens()) {
 				searchWord = tokenizer.nextToken();
 				searchNumber = convertStringToLong(searchWord);
-				result = check.bTreeSearch(check.getRoot(), searchNumber);
+				//result = check.bTreeSearch(check.getRoot(), searchNumber);
+				//need to pass in root not sure just calling btreesearch method or anything else.
+				// result = check.bTreeSearch();
 				if (result != null) {
-					lastAnswer = convertBack1(result.data, sequenceLength);
-					System.out.println(lastAnswer + ": " + result.getFrequency());
+					lastAnswer = convertBack1(result.o, sequenceLength);
+					System.out.println(lastAnswer + ": " + result.getFreq());
 
 				}
 			}
@@ -257,3 +262,4 @@ public class GeneBankSearch {
 		return convertBack.toString();	
 	}
 }
+
