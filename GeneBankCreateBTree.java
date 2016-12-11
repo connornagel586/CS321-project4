@@ -2,24 +2,70 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
+import java.util.regex.Pattern;
+import java.util.StringTokenizer;
 
 public class GeneBankCreateBTree {
+	int debugLevel = -1, cacheSize, degree = -1, sequenceLength = 0;
+	boolean useCache = false;
+
+	public enum States {
+		START, SEQUENCE, UNKNOWN_CHARS, IN_SEQUENCE, END_SEQUENCE, END
+	}
+
+	public GeneBankCreateBTree() {
+		this.degree = degree;
+		this.sequenceLength = sequenceLength;
+		this.cacheSize = cacheSize;
+		this.debugLevel = debugLevel;
+		this.useCache = useCache;
+	}
+
+	private File file;
+
+	public File getFile() {
+		return this.file;
+	}
+
+	public File setFile(File f) {
+		return this.file = f;
+	}
+
+	public int getDebugLevel() {
+		return debugLevel;
+	}
+
+	public void setDebugLevel(int debugLevel) {
+		this.debugLevel = debugLevel;
+	}
+
+	public int getCacheSize() {
+		return cacheSize;
+	}
+
+	public void setCacheSize(int cacheSize) {
+		this.cacheSize = cacheSize;
+	}
+
+	public int getDegree() {
+		return degree;
+	}
+
+	public void setDegree(int degree) {
+		this.degree = degree;
+	}
+
+	public int getSequenceLength() {
+		return sequenceLength;
+	}
+
+	public void setSequenceLength(int sequenceLength) {
+		this.sequenceLength = sequenceLength;
+	}
 
 	public static void main(String[] args) {
-		Scanner scan;
-		int debugLevel = -1, cacheSize, degree = -1, sequenceLength = 0;
-		boolean useCache = false;
-		boolean useDebug = false;
-		String nextLine = "";
-		String line = "";
-		String sequence2 = "";
-		String sequence1 = "";
-		String startflag = "ORIGIN";
-		String endflag = "//";
-		String DELIMITER = "[actgn/]*";
-		File file;
-		File bTreeFile;
-		boolean notDone = false;
+
+		GeneBankCreateBTree create = new GeneBankCreateBTree();
 
 		// Check arg length
 		try {
@@ -31,9 +77,9 @@ public class GeneBankCreateBTree {
 			// Check for chache
 			if (args[0].equals("0") || args[0].equals("1")) {
 				if (args[0].equals("0")) {
-					useCache = false;
+					create.useCache = false;
 				} else {
-					useCache = true;
+					create.useCache = true;
 				}
 			} else {
 				printUsage();
@@ -41,10 +87,10 @@ public class GeneBankCreateBTree {
 			}
 
 			if (Integer.parseInt(args[1]) >= 0) {
-				if (degree == 0) {
-					degree = 127;
+				if (create.degree == 0) {
+					create.degree = 127;
 				} else {
-					degree = Integer.parseInt(args[1]);
+					create.degree = Integer.parseInt(args[1]);
 				}
 			} else {
 				printUsage();
@@ -55,156 +101,119 @@ public class GeneBankCreateBTree {
 				printUsage();
 				System.exit(0);
 			}
-			file = new File(args[2]);
+			create.setFile(new File(args[2]));
 
 			// Check sequence length
 			if (Integer.parseInt(args[3]) > 1 || Integer.parseInt(args[3]) < 31) {
-				sequenceLength = Integer.parseInt(args[3]);
+				create.sequenceLength = Integer.parseInt(args[3]);
 			} else {
 				printUsage();
 				System.exit(0);
 			}
 
 			// Check Debug and Cache Size
-			if (args.length == 6 && useCache == false) {
+			if (args.length == 6 && create.useCache == false) {
 				printUsage();
 				System.exit(0);
-			} else if (args.length == 6 && useCache == true) {
-				cacheSize = Integer.parseInt(args[4]);
-				debugLevel = Integer.parseInt(args[5]);
-				useDebug = true;
-				if (debugLevel > 1 || debugLevel < 0) {
+			} else if (args.length == 6 && create.useCache == true) {
+				create.cacheSize = Integer.parseInt(args[4]);
+				create.debugLevel = Integer.parseInt(args[5]);
+				if (create.debugLevel > 1 || create.debugLevel < 0) {
 					printUsage();
 					System.exit(0);
 				}
-			} else if (args.length == 5 && useCache == true) {
-				cacheSize = Integer.parseInt(args[4]);
-			} else if (args.length == 5 && useCache == false) {
-				debugLevel = Integer.parseInt(args[4]);
-				useDebug = true;
-				if (debugLevel > 1 || debugLevel < 0) {
+			} else if (args.length == 5 && create.useCache == true) {
+				create.cacheSize = Integer.parseInt(args[4]);
+			} else if (args.length == 5 && create.useCache == false) {
+				create.debugLevel = Integer.parseInt(args[4]);
+				if (create.debugLevel > 1 || create.debugLevel < 0) {
 					printUsage();
 					System.exit(0);
 				}
 			}
 
-			String filename = (file.getName() + ".btree.data." + sequenceLength + "." + degree);
-			bTreeFile = new File(filename);
-			BTree<TreeObject> tree = new BTree<TreeObject>(degree, bTreeFile);
-			scan = new Scanner(file);
-			nextLine = scan.nextLine();
+			//
+			// while (scan.hasNextLine()) {
+			// nextLine = scan.nextLine();
+			// if (nextLine.contains(startflag)) {
+			//
+			// while(scan.hasNextLine()){
+			// nextLine = scan.nextLine().toLowerCase().trim();
+			// if(nextLine.contains(endflag)){
+			// break;
+			// }
+			//
+			// StringTokenizer strin = new StringTokenizer(nextLine,
+			// "0123456789 \\s n");
+			// seq = "";
+			// int start = 0;
+			// while(strin.hasMoreElements()){
+			// seq += strin.nextElement();
+			// }
+			// int j = 0;
+			// while(sequence2.length() != sequenceLength && j != seq.length()){
+			// sequence2 += seq.charAt(j);
+			// j++;
+			// }
+			//
+			// // Converts DNA sequence to binary.
+			// if (sequence2.length() == sequenceLength) { // makes sure
+			// // sequence is k
+			// // in length.
+			// for (int i = 0; i < sequence2.length(); i++) {
+			// char c = sequence2.charAt(i);
+			//
+			// switch (c) {
+			// case ('a'):
+			// sequence1 += "00";
+			// break;
+			// case ('c'):
+			// sequence1 += "01";
+			// break;
+			// case ('g'):
+			// sequence1 += "10";
+			// break;
+			// case ('t'):
+			// sequence1 += "11";
+			// break;
+			// case ('n'):
+			// sequence1 = ""; // Skips the n's.
+			//
+			// break;
+			// }
+			// }
+			//
+			// // Add the binary sequence to the tree.
+			// if (sequence1.length() == sequenceLength * 2) {
+			// TreeObject o = new TreeObject(Long.parseLong(sequence1));
+			// try {
+			// tree.insertNode(o);
+			//
+			// } catch (IOException e) {
+			// e.printStackTrace();
+			// }
+			// sequence1 = "";
+			// sequence2 = ""; // clear sequences
+			// }
+			// }
+			//
+			//
+			//
+			// }
+			// }
+			//
+			// }
+			//
 
-			while (true) { // Continue until end.
-
-				while (!notDone) {
-					nextLine = scan.nextLine();
-					if (nextLine.contains(startflag)) {
-						nextLine = scan.nextLine().toLowerCase().trim();
-						notDone = true;
-						break;
-					}
-				}
-
-				scan.useDelimiter(DELIMITER);
-
-				int start = 0; 
-				line = nextLine; 
-				nextLine = scan.nextLine().toLowerCase().trim(); 
-
-				// Collect DNA sequence.
-				while (start < line.length()) {
-
-					int end = start + sequenceLength;
-
-					if (end < line.length()) { 
-
-						for (int i = start; i < end; i++) {
-							sequence2 += line.charAt(i);
-						}
-
-					} else { 
-
-						if (nextLine.contains(endflag)) {
-							notDone = false;
-							break;
-						}
-
-						end = sequenceLength - (nextLine.length() - start);
-
-						for (int i = start; i < line.length(); i++) {
-							sequence2 += line.charAt(i);
-						}
-
-						for (int i = 0; i < end; i++) {
-							sequence2 += nextLine.charAt(i);
-						}
-					}
-
-					// Converts DNA sequence to binary.
-					if (sequence2.length() == sequenceLength) { // makes sure
-																// sequence is k
-																// in length.
-						for (int i = 0; i < sequence2.length(); i++) {
-							char c = sequence2.charAt(i);
-
-							switch (c) {
-							case ('a'):
-								sequence1 += "00";
-								break;
-							case ('c'):
-								sequence1 += "01";
-								break;
-							case ('g'):
-								sequence1 += "10";
-								break;
-							case ('t'):
-								sequence1 += "11";
-								break;
-							case ('n'):
-								sequence1 = ""; // Skips the n's.
-
-								break;
-							}
-						}
-
-						// Add the binary sequence to the tree.
-						if (sequence1.length() == sequenceLength * 2) {
-							TreeObject o = new TreeObject(Long.parseLong(sequence1));
-							try {
-								tree.insertNode(o);
-
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						}
-					}
-
-					start++; // advance cursor
-					sequence1 = "";
-					sequence2 = ""; // clear sequences
-				}
-
-				if (!notDone) {
-					break;
-				}
-
+			if (create.debugLevel == 0) {
+				// do some stuff
 			}
-			scan.close();
-
-			if (useDebug) {
-				if (debugLevel == 0) {
-					// do some stuff
-				}
-				if (debugLevel == 1) {
-					File dump = new File("dump");
-					tree.printDebugInfo(dump);
-				}
-
+			if (create.debugLevel == 1) {
+				// File dump = new File("dump");
+				// tree.debugPrintIOT(dump);
 			}
 
 		} catch (NumberFormatException e) {
-			printUsage();
-		} catch (FileNotFoundException e) {
 			printUsage();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -212,8 +221,141 @@ public class GeneBankCreateBTree {
 		}
 	}
 
+	class KeyMaker {
+		States state = States.START;
+		Scanner scan;
+		BTree tree;
+		File file;
+		String filename;
+		String line;
+		String key;
+
+		public KeyMaker(GeneBankCreateBTree create) throws IOException {
+			filename = (file.getName() + ".btree.data." + sequenceLength + "." + degree);
+			file = create.getFile();
+			tree = new BTree(degree, file);
+			scan = new Scanner(file);
+
+		}
+
+		public long getNextKey() throws Exception {
+			switch (state) {
+
+			case START: {
+				while (state == States.START) {
+
+					line = scan.nextLine();
+
+					if (line == null) {
+						state = States.END;
+
+					} else if (line.contains("ORIGIN")) {
+						state = States.SEQUENCE;
+					}
+				}
+			}
+			case SEQUENCE: {
+
+				while (state == States.IN_SEQUENCE) {
+
+					String ch = scan.next();
+					if (ch.contains("/")) {
+						state = States.END_SEQUENCE;
+						break;
+					} else if (ch.contains("n")) {
+
+						key = "";
+						state = States.UNKNOWN_CHARS;
+						break;
+					} else if (ch.contains("a") || ch.contains("t")
+							|| ch.contains("c") || ch.contains("g")) {
+						if (key.length() == sequenceLength) {
+							key = key.substring(1, sequenceLength);
+							key += ch;
+							return encode(key);
+						} else {
+
+							key += ch;
+							if (key.length() == sequenceLength) {
+
+								return encode(key);
+							}
+						}
+					}
+
+				}
+			}
+			case IN_SEQUENCE: {
+
+				while (state == States.IN_SEQUENCE) {
+
+					String ch = scan.next();
+					if (ch.contains("/")) {
+
+						state = States.END_SEQUENCE;
+					} else if (ch.contains("a") || ch.contains("t")
+							|| ch.contains("c") || ch.contains("g")) {
+						key += ch;
+						state = States.SEQUENCE;
+					}
+				}
+				break;
+
+			}
+
+			case END_SEQUENCE: {
+
+				line = scan.nextLine();
+				if (line != null) {
+
+					line.trim();
+					if (line.equals("ORIGIN")) {
+
+						state = States.SEQUENCE;
+						break;
+					}
+				}else{
+					
+					state = States.END;
+					break;
+				}
+			}
+
+			}
+			return 0; //for now
+		}
+	}
+
+	public long encode(String seq) throws Exception {
+		if (seq.length() != sequenceLength) {
+			throw new Exception("String of length " + seq.length()
+					+ " was passed to btree with sequenceLenght of "
+					+ sequenceLength);
+		}
+		long sequence = 0;
+		for (int i = 0; i < seq.length(); i++) {
+			sequence = sequence << 2;
+			char c = seq.charAt(i);
+			if (c == 'a' || c == 'A') {
+				sequence = sequence | 0x0L;
+			} else if (c == 't' || c == 'T') {
+				sequence = sequence | 0x3L;
+			} else if (c == 'c' || c == 'C') {
+				sequence = sequence | 0x1L;
+			} else if (c == 'g' || c == 'G') {
+				sequence = sequence | 0x2L;
+			} else {
+				throw new Exception("Unexpected character: " + c);
+			}
+		}
+		return sequence;
+	}
+
 	private static void printUsage() {
-		System.err.println("GeneBankCreateBTree <0/1(no/with Cache)> <degree> <gbk file> "
-				+ "<sequence length> 1<=k<=31>" + "[<cache size>] [<debug level>]" + "[<debug level>]\n");
+		System.err
+				.println("GeneBankCreateBTree <0/1(no/with Cache)> <degree> <gbk file> "
+						+ "<sequence length> 1<=k<=31>"
+						+ "[<cache size>] [<debug level>]"
+						+ "[<debug level>]\n");
 	}
 }
